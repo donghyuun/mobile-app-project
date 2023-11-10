@@ -2,6 +2,7 @@ package com.example.unknownmap
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -15,10 +16,13 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.unknownmap.databinding.ActivityMainBinding
+import com.kakao.sdk.auth.model.OAuthToken
+import com.kakao.sdk.common.model.ClientError
+import com.kakao.sdk.common.model.ClientErrorCause
+import com.kakao.sdk.user.UserApiClient
 import net.daum.mf.map.api.MapPOIItem
 import net.daum.mf.map.api.MapPoint
 import net.daum.mf.map.api.MapView
-
 
 class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.MapViewEventListener {
 
@@ -31,6 +35,11 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         val binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+
+        //----------------------카카오 로그아웃 버튼------------------------//
+        binding.logoutBtnKakao.setOnClickListener{
+            kakaoLogout()
+        }
 
         val mapView = MapView(this)
         val mapViewContainer = binding.mapView as ViewGroup
@@ -219,6 +228,51 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         TODO("Not yet implemented")
     }
 
+    fun kakaoLogout(){
+        // 로그아웃 다이얼로그 생성
+        val dialogBuilder = AlertDialog.Builder(this)
+        dialogBuilder.setMessage("정말 로그아웃 하시겠습니까?")
+            .setCancelable(false)
+            .setPositiveButton("확인", DialogInterface.OnClickListener {
+                    dialog, id -> confirmLogout()
+            })
+            .setNegativeButton("취소", DialogInterface.OnClickListener {
+                    dialog, id -> dialog.cancel()
+            })
+
+        val alert = dialogBuilder.create()
+        alert.setTitle("로그아웃")
+        alert.show()
+    }
+
+    private fun confirmLogout(){
+        //로그아웃
+        UserApiClient.instance.logout { error ->
+            if (error != null) {
+                Log.e("LOGOUT", "로그아웃 실패. SDK에서 토큰 삭제됨", error)
+            } else {
+                Log.i("LOGOUT", "로그아웃 성공. SDK에서 토큰 삭제됨")
+                val intent = Intent(this, LoginActivity::class.java)
+                //스택에 남아있는 모든 액티비티를 제거하고, 해당 엑티비티를 시작함
+                startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+                //현재 액티비티를 종료
+                finish()
+            }
+        }
+    }
+    fun kakaoUnlink() {
+        //연결 끊기
+        UserApiClient.instance.unlink { error ->
+            if (error != null) {
+                Log.e("LOGOUT", "연결 끊기 실패", error)
+            } else {
+                Log.i("LOGOUT", "연결 끊기 성공. SDK에서 토큰 삭제 됨")
+            }
+        }
+        finish()
+    }
+
+
 //    // onActivityResult 함수
 //    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 //        super.onActivityResult(requestCode, resultCode, data)
@@ -263,3 +317,4 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 //    }
 
 }
+
