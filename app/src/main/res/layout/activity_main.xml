@@ -9,6 +9,12 @@
         android:text="Kakao Map Api"
         android:textSize="30dp"/>
 
+    <Button
+        android:id="@+id/logoutBtnKakao"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="kakao logout" />
+
     <LinearLayout
         android:id="@+id/map_view"
         android:layout_width="match_parent"
