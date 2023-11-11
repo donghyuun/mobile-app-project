@@ -20,6 +20,7 @@ import net.daum.mf.map.api.MapView
 import java.net.URI
 import java.util.Collections
 
+//***********************장소 등록 버튼 눌렀을때 보이는 액티비티***********************//
 class SetPlaceActivity : AppCompatActivity() {
     var isSet : Boolean = false
 
@@ -29,17 +30,18 @@ class SetPlaceActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val binding = ActivitySetPlaceBinding.inflate(layoutInflater)
 
+        //MainActivity 에서 전달된 위도, 경도값을 변수로 꺼냄
         val latitude = intent.getDoubleExtra("create_latitude", 0.0)
         val longitude = intent.getDoubleExtra("create_longitude", 0.0)
 
-        // 지금 설정된 카테고리 번호
+        // 지금 설정된 카테고리 번호, 유저가 카테고리 선택시 변경됨
         var currentSelectedNum = 0
 
-        Log.d("kim", "first got ${latitude}, ${longitude}")
+        Log.d("user", "first got ${latitude}, ${longitude}")
 
         // 툴바 뒤로 가기
         binding.setPlaceBackBtn.setOnClickListener{
-            finish()
+            finish() //현재 액티비티 종료, 스택의 직전에 쌓여있던 엑티비티로 이동
         }
 
         val btnTrashBin = binding.categoryTrashBin
@@ -52,7 +54,7 @@ class SetPlaceActivity : AppCompatActivity() {
         val btnList : List<ImageView> = listOf<ImageView>(btnTrashBin, btnVendingMachine, btnFish, btnClothesDonation, btnPullUpBar, btnCigar)
 
         // 카테고리 버튼 클릭 시, 색깔 활성화 및 현재 눌려진 버튼 확인
-        binding.categoryTrashBin.setOnClickListener{
+        binding.categoryTrashBin.setOnClickListener{ //쓰레기통 버튼 클릭 시
             btnTrashBin.setColorFilter(Color.parseColor("#00000000"))
             btnTrashBin.setBackgroundResource(R.drawable.corner_round)
             currentSelectedNum = 0
@@ -64,7 +66,7 @@ class SetPlaceActivity : AppCompatActivity() {
             }
         }
 
-        binding.categoryVendingMachine.setOnClickListener{
+        binding.categoryVendingMachine.setOnClickListener{//자판기 버튼 클릭 시
             btnVendingMachine.setColorFilter(Color.parseColor("#00000000"))
             btnVendingMachine.setBackgroundResource(R.drawable.corner_round)
             currentSelectedNum = 1
@@ -76,7 +78,7 @@ class SetPlaceActivity : AppCompatActivity() {
             }
         }
 
-        binding.categoryFish.setOnClickListener{
+        binding.categoryFish.setOnClickListener{//붕어빵 버튼 클릭 시
             btnFish.setColorFilter(Color.parseColor("#00000000"))
             btnFish.setBackgroundResource(R.drawable.corner_round)
             currentSelectedNum = 2
@@ -89,7 +91,7 @@ class SetPlaceActivity : AppCompatActivity() {
             }
         }
 
-        binding.categoryClothesDonation.setOnClickListener{
+        binding.categoryClothesDonation.setOnClickListener{//헌옷수거함 버튼 클릭 시
             btnClothesDonation.setColorFilter(Color.parseColor("#00000000"))
             btnClothesDonation.setBackgroundResource(R.drawable.corner_round)
             currentSelectedNum = 3
@@ -102,7 +104,7 @@ class SetPlaceActivity : AppCompatActivity() {
             }
         }
 
-        binding.categoryPullUpBar.setOnClickListener{
+        binding.categoryPullUpBar.setOnClickListener{//철봉 버튼 클릭 시
             btnPullUpBar.setColorFilter(Color.parseColor("#00000000"))
             btnPullUpBar.setBackgroundResource(R.drawable.corner_round)
             currentSelectedNum = 4
@@ -115,7 +117,7 @@ class SetPlaceActivity : AppCompatActivity() {
             }
         }
 
-        binding.categoryCigar.setOnClickListener{
+        binding.categoryCigar.setOnClickListener{//흡연장 버튼 클릭 시
             btnCigar.setColorFilter(Color.parseColor("#00000000"))
             btnCigar.setBackgroundResource(R.drawable.corner_round)
             currentSelectedNum = 5
@@ -132,10 +134,10 @@ class SetPlaceActivity : AppCompatActivity() {
         resultLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()){ result ->
             // 이미지 받아와서 보여주기
-            if (result.resultCode == RESULT_OK && result.data != null) {
+            if (result.resultCode == RESULT_OK && result.data != null) {//정상적으로 이미지를 선택or촬영한 경우
                 uri = result.data!!.data!!
 
-                binding.setPlaceShowImage.setImageURI(uri)
+                binding.setPlaceShowImage.setImageURI(uri)//이미지 뷰(장소 선택페이지의 아주 조그맣게 보이는 부분)에 이미지 출력
             }
         }
         // 이미지 등록 버튼 리스너
@@ -149,10 +151,10 @@ class SetPlaceActivity : AppCompatActivity() {
                 Intent.EXTRA_INITIAL_INTENTS,
                 arrayOf(cameraIntent)
             )
-            resultLauncher.launch(chooser)
+            resultLauncher.launch(chooser)//이미지 선택or촬영하는 액티비티(chooser) 실행
         }
 
-        // 등록 버튼 리스너
+        // 등록 버튼 리스너 ***Marker 클래스에 넣을 값들을 intent로 MainActivity로 넘겨줌***
         binding.setPlaceSetBtn.setOnClickListener {
             val name = binding.placeName.text.toString()
 
@@ -168,7 +170,7 @@ class SetPlaceActivity : AppCompatActivity() {
             setResult(RESULT_OK, intent)
 
             Log.d("kim", "$latitude, $longitude, $name, $currentSelectedNum transferred to MainActivity")
-            finish()
+            finish()//스택에 쌓인 직전 엑티비티(=MainActivity)로 이동
         }
 
         setContentView(binding.root)

@@ -125,7 +125,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             override fun onMapViewMoveFinished(p0: MapView?, p1: MapPoint?) {}
         })
 
-        // SetPlaceActivity 로부터 결과를 받아오는 코드
+        // SetPlaceActivity 로부터 결과를 받아오는 코드 ***등록할 좌표 정보, 이름, 카테고리 등을 받아와서 mapView에 좌표로 등록***
         resultLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()){ result ->
             // 서브 액티비티로부터 돌아올 때의 결과 값을 받아 올 수 있는 구문
@@ -146,9 +146,9 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         binding.btnSetPlace.setOnClickListener{
             val intent = Intent(this@MainActivity, SetPlaceActivity::class.java)
 
-            val latitude = mapView.mapCenterPoint.mapPointGeoCoord.latitude
-            val longitude = mapView.mapCenterPoint.mapPointGeoCoord.longitude
-            // 현재 중심 위치의 위도, 경도 SetPlaceActivity에 전달
+            val latitude = mapView.mapCenterPoint.mapPointGeoCoord.latitude // 화면 중심의 위도를 얻어옴
+            val longitude = mapView.mapCenterPoint.mapPointGeoCoord.longitude // 화면 중심의 경도를 얻어옴
+            // 화면 중심 위치의 위도, 경도 SetPlaceActivity에 전달
             intent.putExtra("create_latitude", latitude)
             intent.putExtra("create_longitude", longitude)
 
