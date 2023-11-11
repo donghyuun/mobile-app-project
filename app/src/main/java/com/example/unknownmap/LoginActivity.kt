@@ -68,7 +68,13 @@ class LoginActivity : AppCompatActivity() {
                                 intent.putExtra("userId", user.id)
                                 intent.putExtra("userEmail", user.kakaoAccount?.email)
                                 intent.putExtra("userNickname", user.kakaoAccount?.profile?.nickname)
-                                Log.d("LOGIN", "In LoginActivity, User ID: ${user.id}, Email: ${user.kakaoAccount?.email}, Nickname: ${user.kakaoAccount?.profile?.nickname}")
+                                intent.putExtra("userToken", token.accessToken)
+                                Log.d("LOGIN", "In LoginActivity, " +
+                                        "User ID: ${user.id}, " +
+                                        "Email: ${user.kakaoAccount?.email}, " +
+                                        "Nickname: ${user.kakaoAccount?.profile?.nickname}, " +
+                                        "token: ${token.accessToken}"
+                                )
 
                                 // MainActivity로 이동
                                 startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))

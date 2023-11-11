@@ -90,9 +90,10 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         val userId = intent.getLongExtra("userId",0)//Long 타입임, 주의.
         val userEmail = intent.getStringExtra("userEmail") ?: ""
         val userNickname = intent.getStringExtra("userNickname") ?: ""
+        val userToken = intent.getStringExtra("userToken") ?: ""
 
         // 추출한 데이터를 사용
-        Log.d("LOGIN", "In MainActivity, User ID: $userId, Email: $userEmail, Nickname: $userNickname")
+        Log.d("LOGIN", "In MainActivity, User ID: $userId, Email: $userEmail, Nickname: $userNickname, Token: $userToken")
 
         //----------------------카카오 로그아웃 버튼------------------------//
         binding.logoutBtnKakao.setOnClickListener{
