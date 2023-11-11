@@ -42,6 +42,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
     // setPlaceActivity의 결과를 가져오기 위한 객체
     private lateinit var resultLauncher : ActivityResultLauncher<Intent>
 
+
     fun uriToBitmap(contentResolver: ContentResolver, uri: Uri?): Bitmap? {
         try {
             // URI에서 스트림 열기
@@ -81,6 +82,17 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         val binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+
+        // Intent를 받아옴
+        val intent = intent
+
+        // Intent에서 데이터를 추출
+        val userId = intent.getLongExtra("userId",0)//Long 타입임, 주의.
+        val userEmail = intent.getStringExtra("userEmail") ?: ""
+        val userNickname = intent.getStringExtra("userNickname") ?: ""
+
+        // 추출한 데이터를 사용
+        Log.d("LOGIN", "In MainActivity, User ID: $userId, Email: $userEmail, Nickname: $userNickname")
 
         //----------------------카카오 로그아웃 버튼------------------------//
         binding.logoutBtnKakao.setOnClickListener{
