@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
 
     <TextView
         android:layout_width="match_parent"
@@ -15,8 +17,42 @@
         android:layout_height="wrap_content"
         android:text="kakao logout" />
 
-    <LinearLayout
-        android:id="@+id/map_view"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:id="@+id/map_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:elevation="0dp"/>
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/corner_round"
+            android:backgroundTint="@color/gainsboro"
+            android:layout_margin="25dp"
+            android:hint="현재 장소명"
+            android:paddingStart="10dp"
+            android:elevation="4dp"/>
+
+        <Button
+            android:id="@+id/btn_set_place"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/main_menu"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="10dp"
+            android:elevation="4dp"
+            android:text="장소 등록" />
+
+        <LinearLayout
+            android:id="@+id/main_menu"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:background="@drawable/corner_round"
+            android:backgroundTint="@color/white"
+            android:layout_alignParentBottom="true"
+            android:elevation="4dp"/>
+    </RelativeLayout>
 </LinearLayout>
