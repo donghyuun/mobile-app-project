@@ -1,5 +1,6 @@
 package com.example.unknownmap
 
+import android.content.ContentValues.TAG
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -59,6 +60,20 @@ class LoginActivity : AppCompatActivity() {
                     Log.i("LOGIN", "카카오톡으로 로그인 성공 ${token.accessToken}")
                     val intent = Intent(this, MainActivity::class.java)
                     startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+
+                    //로그인 성공한 사용자의 정보 요청
+                    UserApiClient.instance.me { user, error ->
+                        if (error != null) {
+                            Log.e("LOGIN", "사용자 정보 요청 실패", error)
+                        } else if (user != null) {
+                            Log.i("LOGIN", "사용자 정보 요청 성공" +
+                                    "\n회원번호: ${user.id}" +
+                                    "\n이메일: ${user.kakaoAccount?.email}" +
+                                    "\n닉네임: ${user.kakaoAccount?.profile?.nickname}")
+                        }
+                    }
+
+
                     finish()
                 }
             }
