@@ -9,6 +9,6 @@ class MyApplication : Application() {
         // 다른 초기화 코드들
 
         // Kakao SDK 초기화
-        KakaoSdk.init(this, "")
+        KakaoSdk.init(this, "6e41e6242e1a85e5375ac049fc437c88")
     }
 }

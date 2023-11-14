@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.MenuItem
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.Toolbar
@@ -16,7 +17,9 @@ import com.example.unknownmap.databinding.ActivityMainBinding
 import com.example.unknownmap.databinding.ActivitySetPlaceBinding
 import net.daum.mf.map.api.MapPOIItem
 import net.daum.mf.map.api.MapPoint
+import net.daum.mf.map.api.MapReverseGeoCoder
 import net.daum.mf.map.api.MapView
+import okhttp3.Address
 import java.net.URI
 import java.util.Collections
 
@@ -26,6 +29,8 @@ class SetPlaceActivity : AppCompatActivity() {
 
     // 사진 업로드를 위한 Activity에서 결과 가져오기
     private lateinit var resultLauncher : ActivityResultLauncher<Intent>
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivitySetPlaceBinding.inflate(layoutInflater)
@@ -33,6 +38,22 @@ class SetPlaceActivity : AppCompatActivity() {
         //MainActivity 에서 전달된 위도, 경도값을 변수로 꺼냄
         val latitude = intent.getDoubleExtra("create_latitude", 0.0)
         val longitude = intent.getDoubleExtra("create_longitude", 0.0)
+
+        fun setAddress(address: String) {
+            binding.placeAddress.setText(address)
+        }
+
+        var addr = ""
+        MapReverseGeoCoder("6e41e6242e1a85e5375ac049fc437c88", MapPoint.mapPointWithGeoCoord(latitude, longitude),
+            object : MapReverseGeoCoder.ReverseGeoCodingResultListener {
+                override fun onReverseGeoCoderFoundAddress(p0: MapReverseGeoCoder?, address: String) {
+                    addr = address
+                    setAddress(addr)
+                }
+                override fun onReverseGeoCoderFailedToFindAddress(p0: MapReverseGeoCoder?) {
+                    Toast.makeText(this@SetPlaceActivity, "주소를 찾을 수 없습니다.", Toast.LENGTH_LONG).show()
+                }
+            }, this).startFindingAddress()
 
         // 지금 설정된 카테고리 번호, 유저가 카테고리 선택시 변경됨
         var currentSelectedNum = 0

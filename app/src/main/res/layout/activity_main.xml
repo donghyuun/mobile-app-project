@@ -5,27 +5,17 @@
     android:layout_height="match_parent"
     >
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Kakao Map Api"
-        android:textSize="30dp"/>
-
-    <Button
-        android:id="@+id/logoutBtnKakao"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="kakao logout" />
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
         <LinearLayout
             android:id="@+id/map_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:elevation="0dp"/>
+            android:elevation="0dp"
+            android:orientation="horizontal" />
+
         <EditText
             android:layout_width="match_parent"
             android:layout_height="50dp"
@@ -36,6 +26,18 @@
             android:paddingStart="10dp"
             android:elevation="4dp"/>
 
+        <ImageButton
+            android:id="@+id/my_location_btn"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:background="@drawable/corner_round"
+            android:backgroundTint="@color/white"
+            android:src="@drawable/my_location"
+            android:layout_above="@id/main_menu"
+            android:layout_marginBottom="10dp"
+            android:layout_marginLeft="15dp"
+            android:elevation="4dp" />
+
         <Button
             android:id="@+id/btn_set_place"
             android:layout_width="wrap_content"
@@ -44,15 +46,42 @@
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="10dp"
             android:elevation="4dp"
-            android:text="장소 등록" />
+            android:text="장소 등록"
+            android:textSize="15sp"
+            android:paddingHorizontal="10dp"
+            android:textStyle="bold"/>
 
         <LinearLayout
             android:id="@+id/main_menu"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
+            android:layout_height="100dp"
             android:background="@drawable/corner_round"
             android:backgroundTint="@color/white"
             android:layout_alignParentBottom="true"
-            android:elevation="4dp"/>
+            android:elevation="4dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+            <ImageButton
+                android:id="@+id/main_home_btn"
+                android:paddingHorizontal="25dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/home_page"
+                android:background="@drawable/transparent"/>
+            <ImageButton
+                android:id="@+id/main_star_btn"
+                android:paddingHorizontal="25dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/star_page"
+                android:background="@drawable/transparent"/>
+            <ImageButton
+                android:id="@+id/main_mypage_btn"
+                android:paddingHorizontal="25dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/my_page"
+                android:background="@drawable/transparent"/>
+        </LinearLayout>
     </RelativeLayout>
 </LinearLayout>
