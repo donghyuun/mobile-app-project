@@ -2,4 +2,8 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="antiquewhite">#FFFAEBD7</color>
+    <color name="papayawhip">#FFEFD5</color>
+    <color name="mintcream">#F5FFFA</color>
+    <color name="gainsboro">#DCDCDC</color>
 </resources>

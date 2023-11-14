@@ -1,5 +1,6 @@
 package com.example.unknownmap
 
+import android.content.ContentValues.TAG
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -9,6 +10,7 @@ import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
+import kotlin.reflect.typeOf
 
 class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,9 +59,28 @@ class LoginActivity : AppCompatActivity() {
                 }
                 else if (token != null){
                     Log.i("LOGIN", "카카오톡으로 로그인 성공 ${token.accessToken}")
-                    val intent = Intent(this, MainActivity::class.java)
-                    startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
-                    finish()
+                    //로그인 성공한 사용자의 정보 요청
+                        UserApiClient.instance.me { user, error ->
+                            if (error != null) {
+                                Log.e("LOGIN", "사용자 정보 요청 실패", error)
+                            } else if (user != null) {
+                                val intent = Intent(this, MainActivity::class.java)
+                                intent.putExtra("userId", user.id)
+                                intent.putExtra("userEmail", user.kakaoAccount?.email)
+                                intent.putExtra("userNickname", user.kakaoAccount?.profile?.nickname)
+                                intent.putExtra("userToken", token.accessToken)
+                                Log.d("LOGIN", "In LoginActivity, " +
+                                        "User ID: ${user.id}, " +
+                                        "Email: ${user.kakaoAccount?.email}, " +
+                                        "Nickname: ${user.kakaoAccount?.profile?.nickname}, " +
+                                        "token: ${token.accessToken}"
+                                )
+
+                                // MainActivity로 이동
+                                startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+                                finish()
+                            }
+                        }
                 }
             }
         } else {
