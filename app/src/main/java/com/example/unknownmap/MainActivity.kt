@@ -26,6 +26,10 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.unknownmap.databinding.ActivityMainBinding
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.firestore
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
@@ -42,6 +46,10 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
     // 현재 MapPoint 위치
     lateinit var currentMapPoint : MapPoint
+
+    // firestore 데이터를 가져오기 위한 객체
+    var firestore : FirebaseFirestore? = null
+    val db = Firebase.firestore
 
     // setPlaceActivity의 결과를 가져오기 위한 객체
     private lateinit var resultLauncher : ActivityResultLauncher<Intent>
@@ -79,6 +87,21 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             1 -> marker.markerType = MapPOIItem.MarkerType.BluePin // 자판기
             2 -> marker.markerType = MapPOIItem.MarkerType.YellowPin // 붕어빵
         }
+
+        /*
+        when (categoryType) {
+            // 추후 마커 커스텀 이미지로 설정할 것!
+            0 -> marker.markerType = MapPOIItem.MarkerType.CustomImage // 쓰레기통
+            1 -> marker.markerType = MapPOIItem.MarkerType.CustomImage // 자판기
+            2 -> marker.markerType = MapPOIItem.MarkerType.CustomImage // 붕어빵
+        }
+
+        when (categoryType) {
+            0 -> marker.customImageResourceId = R.drawable.trash_bin // 쓰레기통 이미지 리소스
+            1 -> marker.customImageResourceId = R.drawable.vending_machine // 자판기 이미지 리소스
+            2 -> marker.customImageResourceId = R.drawable.fish // 붕어빵 이미지 리소스
+        }
+        */
 
         return marker
     }
@@ -189,6 +212,27 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeadingWithoutMapMoving)
             }
         }
+
+        // DB에 저장된 데이터 불러오기
+        db.collection("sampleMarker")
+            .get()
+            .addOnSuccessListener { result ->
+                for (document in result) {
+                    val name = document.getString("name") ?: ""
+                    val latitude = (document["gps"] as GeoPoint).latitude
+                    val longitude = (document["gps"] as GeoPoint).longitude
+                    val category = document.getLong("category")?.toInt() ?: 0
+                    // imageUri 및 imageString은 Firestore 문서에 포함되어 있지 않으므로 null로 처리
+                    val imageUri: Uri? = null
+
+                    val imageString: String? = null
+                    Log.d("kim", "${document.data}")
+                    mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category))
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.w("kim", "Error getting documents.", exception)
+            }
     }
 
     // 커스텀 말풍선 - binding으로 코드를 더 깔끔하게 수정할 수 있을 듯함
