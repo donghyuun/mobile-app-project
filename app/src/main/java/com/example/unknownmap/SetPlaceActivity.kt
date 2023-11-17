@@ -16,6 +16,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.Toolbar
 import com.example.unknownmap.databinding.ActivityMainBinding
 import com.example.unknownmap.databinding.ActivitySetPlaceBinding
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
 import net.daum.mf.map.api.MapPOIItem
 import net.daum.mf.map.api.MapPoint
 import net.daum.mf.map.api.MapReverseGeoCoder
@@ -28,9 +30,11 @@ import java.util.Collections
 class SetPlaceActivity : AppCompatActivity() {
     var isSet: Boolean = false
 
+    // firestore 설정
+    var firestore : FirebaseFirestore? = null
+
     // 사진 업로드를 위한 Activity에서 결과 가져오기
     private lateinit var resultLauncher: ActivityResultLauncher<Intent>
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +43,9 @@ class SetPlaceActivity : AppCompatActivity() {
         //MainActivity 에서 전달된 위도, 경도값을 변수로 꺼냄
         val latitude = intent.getDoubleExtra("create_latitude", 0.0)
         val longitude = intent.getDoubleExtra("create_longitude", 0.0)
+
+        // firestore 설정
+        firestore = FirebaseFirestore.getInstance()
 
         fun setAddress(address: String) {
             binding.placeAddress.setText(address)
@@ -258,6 +265,26 @@ class SetPlaceActivity : AppCompatActivity() {
             // uri는 String으로 변환해서 intent로 넘기고, 받을 때 다시 parse 해야 함
 
             setResult(RESULT_OK, intent)
+
+            // FireStore 에 저장
+            val marker = Marker(
+                name = name,
+                gps = GeoPoint(latitude, longitude),
+                category = currentSelectedNum,
+                imageString = uri.toString(),
+                imageUri = uri,
+                star = currentScore
+            )
+
+            firestore?.collection("sampleMarker")
+                ?.document(name)
+                ?.set(marker)
+                ?.addOnSuccessListener {
+                    finish()
+                }
+                ?.addOnFailureListener {e ->
+                    Log.e("kim", "Error Marker Written: ${e.message}", e)
+                }
 
             Log.d(
                 "kim",
