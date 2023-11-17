@@ -45,7 +45,7 @@ class SetPlaceActivity : AppCompatActivity() {
         }
 
         var addr = ""
-        MapReverseGeoCoder("API-KEY", MapPoint.mapPointWithGeoCoord(latitude, longitude),
+        MapReverseGeoCoder("6e41e6242e1a85e5375ac049fc437c88", MapPoint.mapPointWithGeoCoord(latitude, longitude),
             object : MapReverseGeoCoder.ReverseGeoCodingResultListener {
                 override fun onReverseGeoCoderFoundAddress(
                     p0: MapReverseGeoCoder?,

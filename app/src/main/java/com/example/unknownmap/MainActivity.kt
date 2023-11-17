@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
     // setPlaceActivity의 결과를 가져오기 위한 객체
     private lateinit var resultLauncher : ActivityResultLauncher<Intent>
+
     fun uriToBitmap(contentResolver: ContentResolver, uri: Uri?): Bitmap? {
         try {
             // URI에서 스트림 열기
