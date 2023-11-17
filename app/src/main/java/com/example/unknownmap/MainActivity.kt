@@ -3,13 +3,17 @@ package com.example.unknownmap
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.ContentResolver
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.location.Location
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.BoringLayout
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -29,20 +33,18 @@ import com.kakao.sdk.user.UserApiClient
 import net.daum.mf.map.api.CalloutBalloonAdapter
 import net.daum.mf.map.api.MapPOIItem
 import net.daum.mf.map.api.MapPoint
+import net.daum.mf.map.api.MapReverseGeoCoder
 import net.daum.mf.map.api.MapView
+import net.daum.mf.map.api.MapView.CurrentLocationEventListener
+import net.daum.mf.map.api.MapView.CurrentLocationTrackingMode
 
-class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.MapViewEventListener {
+class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.MapViewEventListener, MapView.CurrentLocationEventListener {
 
-    val currentLocationMarker: MapPOIItem = MapPOIItem()
-    var centerPoint: MapPoint? = null
-    var isDialogOpen = false // 다이얼로그가 열려 있는지를 나타내는 플래그
-
-    private var currentTagsNum = 0  // 생성된 마커의 개수
+    // 현재 MapPoint 위치
+    lateinit var currentMapPoint : MapPoint
 
     // setPlaceActivity의 결과를 가져오기 위한 객체
     private lateinit var resultLauncher : ActivityResultLauncher<Intent>
-
-
     fun uriToBitmap(contentResolver: ContentResolver, uri: Uri?): Bitmap? {
         try {
             // URI에서 스트림 열기
@@ -55,6 +57,9 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             return null
         }
     }
+
+    private var currentTagsNum = 0  // 생성된 마커의 개수
+    // Marker 생성 함수
     fun createMarker(name: String?, latitude:Double, longtitude:Double, uri: Uri?, categoryType: Int?) : MapPOIItem {
         val point = MapPoint.mapPointWithGeoCoord(latitude, longtitude)
         val marker = MapPOIItem()
@@ -96,7 +101,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         Log.d("LOGIN", "In MainActivity, User ID: $userId, Email: $userEmail, Nickname: $userNickname, Token: $userToken")
 
         //----------------------카카오 로그아웃 버튼------------------------//
-        binding.logoutBtnKakao.setOnClickListener{
+        binding.mainMypageBtn.setOnClickListener{
             kakaoLogout()
         }
 
@@ -106,35 +111,22 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
         // 커스텀 말풍선 설정
         mapView.setCalloutBalloonAdapter(CustomBalloonAdapter(layoutInflater))
-        // mapView(지도)의 중심 위치를 경북대학교로 설정
-        mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(35.8888, 128.6103), true);
-        // 시작 화면 줌 상태
-        mapView.setZoomLevel(1, true)
 
         //**********지도를 클릭시 해당 위치의 위/경도 좌표 출력*************
         mapView.setMapViewEventListener(object : MapView.MapViewEventListener {
             override fun onMapViewInitialized(p0: MapView?) {}
-
             override fun onMapViewCenterPointMoved(p0: MapView?, p1: MapPoint?) {}
-
             override fun onMapViewZoomLevelChanged(p0: MapView?, p1: Int) {}
-
             override fun onMapViewSingleTapped(p0: MapView?, p1: MapPoint?) {
                 Log.d("location", "onMapViewSingleTapped run")
                 val latitude = p1?.mapPointGeoCoord?.latitude
                 val longitude = p1?.mapPointGeoCoord?.longitude
                 Log.d("kim", "위도: ${latitude}, 경도: ${longitude}")
             }
-
-
             override fun onMapViewDoubleTapped(p0: MapView?, p1: MapPoint?) {}
-
             override fun onMapViewLongPressed(p0: MapView?, p1: MapPoint?) {}
-
             override fun onMapViewDragStarted(p0: MapView?, p1: MapPoint?) {}
-
             override fun onMapViewDragEnded(p0: MapView?, p1: MapPoint?) {}
-
             override fun onMapViewMoveFinished(p0: MapView?, p1: MapPoint?) {}
         })
 
@@ -156,22 +148,46 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             }
         }
         // 장소 등록 버튼 리스너, ***누르면 장소 등록 activity 로 이동***
+        var addr = ""
         binding.btnSetPlace.setOnClickListener{
             val intent = Intent(this@MainActivity, SetPlaceActivity::class.java)
 
             val latitude = mapView.mapCenterPoint.mapPointGeoCoord.latitude // 화면 중심의 위도를 얻어옴
             val longitude = mapView.mapCenterPoint.mapPointGeoCoord.longitude // 화면 중심의 경도를 얻어옴
+
+            val mapPoint: MapPoint = MapPoint.mapPointWithGeoCoord(latitude, longitude)
+
             // 화면 중심 위치의 위도, 경도 SetPlaceActivity에 전달
             intent.putExtra("create_latitude", latitude)
             intent.putExtra("create_longitude", longitude)
 
             resultLauncher.launch(intent)
-
             Log.d("kim", "${latitude}, ${longitude} transferred to setPlaceActivity")
         }
 
         // 경북대학교 마커 생성
         mapView.addPOIItem(createMarker("경북대학교", 35.8888, 128.6103, null, 0))
+        // 현위치 모드 설정
+        mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeadingWithoutMapMoving);
+        // mapView(지도)의 중심 위치를 경북대학교로 설정
+        mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(35.8888, 128.6103), true);
+//        mapView.setMapCenterPoint(currentMapPoint, true);
+        // 시작 화면 줌 상태
+        mapView.setZoomLevel(1, true)
+        // 현위치 마커 표시
+        mapView.setShowCurrentLocationMarker(true)
+
+        binding.myLocationBtn.setOnClickListener {
+            // 현재 위치 추적 모드로 변경
+            if (mapView.currentLocationTrackingMode == CurrentLocationTrackingMode.TrackingModeOnWithoutHeadingWithoutMapMoving) {
+                Toast.makeText(this@MainActivity, "현재 위치로 고정하여 표시합니다.", Toast.LENGTH_SHORT).show()
+                mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
+            // 해제
+            } else if (mapView.currentLocationTrackingMode == CurrentLocationTrackingMode.TrackingModeOnWithoutHeading) {
+                Toast.makeText(this@MainActivity, "현재 위치 고정을 해제합니다.", Toast.LENGTH_SHORT).show()
+                mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeadingWithoutMapMoving)
+            }
+        }
     }
 
     // 커스텀 말풍선 - binding으로 코드를 더 깔끔하게 수정할 수 있을 듯함
@@ -206,10 +222,22 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         }
     }
 
+    // CurrentLocationListener Interface start
+    override fun onCurrentLocationUpdate(p0: MapView?, p1: MapPoint?, p2: Float) {
+        if (p1 != null) {
+            currentMapPoint = p1
+        }
+        Log.d("kim", "current map point : " + p1.toString())
+    }
+    override fun onCurrentLocationDeviceHeadingUpdate(p0: MapView?, p1: Float) { }
+    override fun onCurrentLocationUpdateFailed(p0: MapView?) { }
+    override fun onCurrentLocationUpdateCancelled(p0: MapView?) { }
+
+    // CurrentLocationListener Interface end
+
+    // POIItemListener Interface
     override fun onPOIItemSelected(p0: MapView?, p1: MapPOIItem?) { }
-
     override fun onCalloutBalloonOfPOIItemTouched(p0: MapView?, p1: MapPOIItem?) {}
-
     override fun onCalloutBalloonOfPOIItemTouched(
         p0: MapView?,
         p1: MapPOIItem?,
@@ -217,8 +245,11 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
     ) {
         TODO("Not yet implemented")
     }
-
     override fun onDraggablePOIItemMoved(p0: MapView?, p1: MapPOIItem?, p2: MapPoint?) {}
+
+    // POIItemListener Interface end
+
+    // MapViewEventListener Interface
     override fun onMapViewInitialized(p0: MapView?) { }
     override fun onMapViewCenterPointMoved(p0: MapView?, p1: MapPoint?) {}
     override fun onMapViewZoomLevelChanged(p0: MapView?, p1: Int) {}
@@ -229,6 +260,9 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
     override fun onMapViewDragEnded(p0: MapView?, p1: MapPoint?) {}
     override fun onMapViewMoveFinished(p0: MapView?, p1: MapPoint?) {}
 
+    // MapViewEventListener Interface end
+
+    // KAKAO 로그인 코드 start
     fun kakaoLogout(){
         // 로그아웃 다이얼로그 생성
         val dialogBuilder = AlertDialog.Builder(this)
@@ -272,6 +306,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         }
         finish()
     }
+    // 카카오 로그인 코드 end
 }
 
 /*        // 앱 해시 키 얻는 코드
@@ -291,4 +326,5 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 Log.e("name not found", e.toString())
             }
         }
-        getAppKeyHash()*/
+        getAppKeyHash()
+        */
