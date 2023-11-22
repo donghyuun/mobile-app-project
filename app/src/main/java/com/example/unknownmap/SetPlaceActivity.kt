@@ -52,7 +52,7 @@ class SetPlaceActivity : AppCompatActivity() {
         }
 
         var addr = ""
-        MapReverseGeoCoder("6e41e6242e1a85e5375ac049fc437c88", MapPoint.mapPointWithGeoCoord(latitude, longitude),
+        MapReverseGeoCoder("", MapPoint.mapPointWithGeoCoord(latitude, longitude),
             object : MapReverseGeoCoder.ReverseGeoCodingResultListener {
                 override fun onReverseGeoCoderFoundAddress(
                     p0: MapReverseGeoCoder?,
@@ -102,7 +102,7 @@ class SetPlaceActivity : AppCompatActivity() {
             currentSelectedNum = 0
             for (i in btnList) {
                 if (i != btnTrashBin) {
-                    i.setColorFilter(Color.parseColor("#af000000"))
+                    i.setColorFilter(Color.parseColor("#8f000000"))
                     i.setBackgroundResource(R.drawable.transparent)
                 }
             }
@@ -114,7 +114,7 @@ class SetPlaceActivity : AppCompatActivity() {
             currentSelectedNum = 1
             for (i in btnList) {
                 if (i != btnVendingMachine) {
-                    i.setColorFilter(Color.parseColor("#af000000"))
+                    i.setColorFilter(Color.parseColor("#8f000000"))
                     i.setBackgroundResource(R.drawable.transparent)
                 }
             }
@@ -127,7 +127,7 @@ class SetPlaceActivity : AppCompatActivity() {
             btnFish.setColorFilter(Color.parseColor("#00000000"))
             for (i in btnList) {
                 if (i != btnFish) {
-                    i.setColorFilter(Color.parseColor("#af000000"))
+                    i.setColorFilter(Color.parseColor("#8f000000"))
                     i.setBackgroundResource(R.drawable.transparent)
                 }
             }
@@ -140,7 +140,7 @@ class SetPlaceActivity : AppCompatActivity() {
             btnClothesDonation.setColorFilter(Color.parseColor("#00000000"))
             for (i in btnList) {
                 if (i != btnClothesDonation) {
-                    i.setColorFilter(Color.parseColor("#af000000"))
+                    i.setColorFilter(Color.parseColor("#8f000000"))
                     i.setBackgroundResource(R.drawable.transparent)
                 }
             }
@@ -153,7 +153,7 @@ class SetPlaceActivity : AppCompatActivity() {
             btnPullUpBar.setColorFilter(Color.parseColor("#00000000"))
             for (i in btnList) {
                 if (i != btnPullUpBar) {
-                    i.setColorFilter(Color.parseColor("#af000000"))
+                    i.setColorFilter(Color.parseColor("#8f000000"))
                     i.setBackgroundResource(R.drawable.transparent)
                 }
             }
@@ -166,7 +166,7 @@ class SetPlaceActivity : AppCompatActivity() {
             btnCigar.setColorFilter(Color.parseColor("#00000000"))
             for (i in btnList) {
                 if (i != btnCigar) {
-                    i.setColorFilter(Color.parseColor("#af000000"))
+                    i.setColorFilter(Color.parseColor("#8f000000"))
                     i.setBackgroundResource(R.drawable.transparent)
                 }
             }

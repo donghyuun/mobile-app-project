@@ -18,14 +18,17 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.unknownmap.databinding.ActivityMainBinding
+import com.example.unknownmap.databinding.BalloonLayoutBinding
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
@@ -82,27 +85,31 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             customImageBitmap = uriToBitmap(contentResolver, uri)
         }
         when (categoryType) {
-            // 추후 마커 커스텀 이미지로 설정할 것!
-            0 -> marker.markerType = MapPOIItem.MarkerType.RedPin // 쓰레기통
-            1 -> marker.markerType = MapPOIItem.MarkerType.BluePin // 자판기
-            2 -> marker.markerType = MapPOIItem.MarkerType.YellowPin // 붕어빵
+            0 -> {
+                marker.markerType = MapPOIItem.MarkerType.CustomImage
+                marker.customImageResourceId = R.drawable.trash_bin
+            }
+            1 -> {
+                marker.markerType = MapPOIItem.MarkerType.CustomImage
+                marker.customImageResourceId = R.drawable.vending_machine
+            }
+            2 -> {
+                marker.markerType = MapPOIItem.MarkerType.CustomImage
+                marker.customImageResourceId = R.drawable.fish
+            }
+            3 -> {
+                marker.markerType = MapPOIItem.MarkerType.CustomImage
+                marker.customImageResourceId = R.drawable.clothes_donation
+            }
+            4 -> {
+                marker.markerType = MapPOIItem.MarkerType.CustomImage
+                marker.customImageResourceId = R.drawable.pull_up_bar
+            }
+            5 -> {
+                marker.markerType = MapPOIItem.MarkerType.CustomImage
+                marker.customImageResourceId = R.drawable.cigar
+            }
         }
-
-        /*
-        when (categoryType) {
-            // 추후 마커 커스텀 이미지로 설정할 것!
-            0 -> marker.markerType = MapPOIItem.MarkerType.CustomImage // 쓰레기통
-            1 -> marker.markerType = MapPOIItem.MarkerType.CustomImage // 자판기
-            2 -> marker.markerType = MapPOIItem.MarkerType.CustomImage // 붕어빵
-        }
-
-        when (categoryType) {
-            0 -> marker.customImageResourceId = R.drawable.trash_bin // 쓰레기통 이미지 리소스
-            1 -> marker.customImageResourceId = R.drawable.vending_machine // 자판기 이미지 리소스
-            2 -> marker.customImageResourceId = R.drawable.fish // 붕어빵 이미지 리소스
-        }
-        */
-
         return marker
     }
 
@@ -213,6 +220,9 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             }
         }
 
+        // 현재 모든 POIItems 담는 배열
+        lateinit var currentPOIItems: Array<MapPOIItem>
+
         // DB에 저장된 데이터 불러오기
         db.collection("sampleMarker")
             .get()
@@ -229,10 +239,108 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                     Log.d("kim", "${document.data}")
                     mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category))
                 }
+                // DB에 저장된 데이터 모두 불러온 후
+                currentPOIItems = mapView.poiItems
             }
             .addOnFailureListener { exception ->
                 Log.w("kim", "Error getting documents.", exception)
             }
+
+        // 카테고리 버튼 색상 초기화
+        fun buttonColorInit() {
+            binding.onlyAllBtn.setBackgroundResource(R.drawable.button_before)
+            binding.onlyTrashBinBtn.setBackgroundResource(R.drawable.button_before)
+            binding.onlyVendingMachineBtn.setBackgroundResource(R.drawable.button_before)
+            binding.onlyFishBtn.setBackgroundResource(R.drawable.button_before)
+            binding.onlyClothesDonationBtn.setBackgroundResource(R.drawable.button_before)
+            binding.onlyPullUpBarBtn.setBackgroundResource(R.drawable.button_before)
+            binding.onlyCigarBtn.setBackgroundResource(R.drawable.button_before)
+        }
+
+        // 쓰레기통 마커만 보여주는 버튼 리스너
+        binding.onlyTrashBinBtn.setOnClickListener {
+            buttonColorInit()
+            binding.onlyTrashBinBtn.setBackgroundResource(R.drawable.button_after)
+
+            mapView.removeAllPOIItems()
+
+            for (poiItem in currentPOIItems) {
+                if (poiItem.customImageResourceId == R.drawable.trash_bin)
+                    mapView.addPOIItem(poiItem)
+            }
+        }
+        // 자판기 마커만 보여주는 버튼 리스너
+        binding.onlyVendingMachineBtn.setOnClickListener {
+            buttonColorInit()
+            binding.onlyVendingMachineBtn.setBackgroundResource(R.drawable.button_after)
+
+            mapView.removeAllPOIItems()
+
+            for (poiItem in currentPOIItems) {
+                if (poiItem.customImageResourceId == R.drawable.vending_machine)
+                    mapView.addPOIItem(poiItem)
+            }
+        }
+        // 붕어빵 마커만 보여주는 버튼 리스너
+        binding.onlyFishBtn.setOnClickListener {
+            buttonColorInit()
+            binding.onlyFishBtn.setBackgroundResource(R.drawable.button_after)
+
+            mapView.removeAllPOIItems()
+
+            for (poiItem in currentPOIItems) {
+                if (poiItem.customImageResourceId == R.drawable.fish)
+                    mapView.addPOIItem(poiItem)
+            }
+        }
+        // 의류 수거함 마커만 보여주는 버튼 리스너
+        binding.onlyClothesDonationBtn.setOnClickListener {
+            buttonColorInit()
+            binding.onlyClothesDonationBtn.setBackgroundResource(R.drawable.button_after)
+
+            mapView.removeAllPOIItems()
+
+            for (poiItem in currentPOIItems) {
+                if (poiItem.customImageResourceId == R.drawable.clothes_donation)
+                    mapView.addPOIItem(poiItem)
+            }
+        }
+        // 철봉 마커만 보여주는 버튼 리스너
+        binding.onlyPullUpBarBtn.setOnClickListener {
+            buttonColorInit()
+            binding.onlyPullUpBarBtn.setBackgroundResource(R.drawable.button_after)
+
+            mapView.removeAllPOIItems()
+
+            for (poiItem in currentPOIItems) {
+                if (poiItem.customImageResourceId == R.drawable.pull_up_bar)
+                    mapView.addPOIItem(poiItem)
+            }
+        }
+        // 흡연장 마커만 보여주는 버튼 리스너
+        binding.onlyCigarBtn.setOnClickListener {
+            buttonColorInit()
+            binding.onlyCigarBtn.setBackgroundResource(R.drawable.button_after)
+
+            mapView.removeAllPOIItems()
+
+            for (poiItem in currentPOIItems) {
+                if (poiItem.customImageResourceId == R.drawable.cigar)
+                    mapView.addPOIItem(poiItem)
+            }
+        }
+        // 모든 마커 보여주는 버튼 리스너
+        binding.onlyAllBtn.setOnClickListener {
+            buttonColorInit()
+            binding.onlyAllBtn.setBackgroundResource(R.drawable.button_after)
+
+            val poiItems: Array<MapPOIItem> = mapView.poiItems
+            mapView.removeAllPOIItems()
+
+            for (poiItem in currentPOIItems) {
+                mapView.addPOIItem(poiItem)
+            }
+        }
     }
 
     // 커스텀 말풍선 - binding으로 코드를 더 깔끔하게 수정할 수 있을 듯함
@@ -242,12 +350,18 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         val name: TextView = mCalloutBalloon.findViewById(R.id.ball_tv_name)
         val address: TextView = mCalloutBalloon.findViewById(R.id.ball_tv_address)
         val image: ImageView = mCalloutBalloon.findViewById(R.id.ball_show_image)
+
+        val detailBtn : Button = mCalloutBalloon.findViewById(R.id.detail_btn)
+
         override fun getCalloutBalloon(poiItem: MapPOIItem?): View {
             // 마커 클릭 시 나오는 말풍선
-            category.text = when (poiItem?.markerType) {
-                MapPOIItem.MarkerType.RedPin -> "쓰레기통"
-                MapPOIItem.MarkerType.BluePin -> "자판기"
-                MapPOIItem.MarkerType.YellowPin -> "붕어빵"
+            category.text = when (poiItem?.customImageResourceId) {
+                R.drawable.trash_bin -> "쓰레기통"
+                R.drawable.vending_machine -> "자판기"
+                R.drawable.fish -> "붕어빵"
+                R.drawable.clothes_donation -> "의류 수거함"
+                R.drawable.pull_up_bar -> "철봉"
+                R.drawable.cigar -> "흡연장"
                 else -> "기타"
             }
             name.text = poiItem?.itemName   // 해당 마커의 정보 이용 가능
@@ -288,7 +402,6 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         p1: MapPOIItem?,
         p2: MapPOIItem.CalloutBalloonButtonType?
     ) {
-        TODO("Not yet implemented")
     }
     override fun onDraggablePOIItemMoved(p0: MapView?, p1: MapPOIItem?, p2: MapPoint?) {}
 

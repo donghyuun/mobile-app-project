@@ -1,42 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    >
+    android:orientation="vertical">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <LinearLayout
-            android:id="@+id/map_view"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:elevation="0dp"
-            android:orientation="horizontal" />
+            android:layout_above="@id/main_menu"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:elevation="4dp"
+                android:src="@drawable/map_pin" />
+
+            <LinearLayout
+                android:id="@+id/map_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </RelativeLayout>
 
         <EditText
+            android:id="@+id/search_bar"
             android:layout_width="match_parent"
             android:layout_height="50dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginLeft="25dp"
+            android:layout_marginRight="25dp"
+            android:layout_marginBottom="10dp"
             android:background="@drawable/corner_round"
             android:backgroundTint="@color/gainsboro"
-            android:layout_margin="25dp"
+            android:elevation="4dp"
             android:hint="현재 장소명"
-            android:paddingStart="10dp"
-            android:elevation="4dp"/>
+            android:paddingStart="10dp" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/search_bar"
+            android:scrollbars="none">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:paddingHorizontal="20dp">
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/only_all_btn"
+                    android:layout_width="45dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/button_after"
+                    android:layout_marginHorizontal="3dp"
+                    android:padding="0dp"
+                    android:text="모두" />
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/only_trash_bin_btn"
+                    android:layout_width="70dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/button_before"
+                    android:layout_marginHorizontal="3dp"
+                    android:padding="0dp"
+                    android:text="쓰레기통" />
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/only_vending_machine_btn"
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/button_before"
+                    android:layout_marginHorizontal="3dp"
+                    android:padding="0dp"
+                    android:text="자판기" />
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/only_fish_btn"
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/button_before"
+                    android:layout_marginHorizontal="3dp"
+                    android:padding="0dp"
+                    android:text="붕어빵" />
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/only_clothes_donation_btn"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/button_before"
+                    android:layout_marginHorizontal="3dp"
+                    android:padding="0dp"
+                    android:text="의류 수거함" />
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/only_pull_up_bar_btn"
+                    android:layout_width="45dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/button_before"
+                    android:layout_marginHorizontal="3dp"
+                    android:padding="0dp"
+                    android:text="철봉" />
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/only_cigar_btn"
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/button_before"
+                    android:layout_marginHorizontal="3dp"
+                    android:padding="0dp"
+                    android:text="흡연장" />
+            </LinearLayout>
+        </HorizontalScrollView>
 
         <ImageButton
             android:id="@+id/my_location_btn"
             android:layout_width="35dp"
             android:layout_height="35dp"
+            android:layout_above="@id/main_menu"
+            android:layout_marginLeft="15dp"
+            android:layout_marginBottom="10dp"
             android:background="@drawable/corner_round"
             android:backgroundTint="@color/white"
-            android:src="@drawable/my_location"
-            android:layout_above="@id/main_menu"
-            android:layout_marginBottom="10dp"
-            android:layout_marginLeft="15dp"
-            android:elevation="4dp" />
+            android:elevation="4dp"
+            android:src="@drawable/my_location" />
 
         <Button
             android:id="@+id/btn_set_place"
@@ -46,42 +129,45 @@
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="10dp"
             android:elevation="4dp"
+            android:paddingHorizontal="10dp"
             android:text="장소 등록"
             android:textSize="15sp"
-            android:paddingHorizontal="10dp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <LinearLayout
             android:id="@+id/main_menu"
             android:layout_width="match_parent"
-            android:layout_height="100dp"
+            android:layout_height="80dp"
+            android:layout_alignParentBottom="true"
             android:background="@drawable/corner_round"
             android:backgroundTint="@color/white"
-            android:layout_alignParentBottom="true"
             android:elevation="4dp"
             android:gravity="center"
             android:orientation="horizontal">
+
             <ImageButton
                 android:id="@+id/main_home_btn"
-                android:paddingHorizontal="25dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/home_page"
-                android:background="@drawable/transparent"/>
+                android:background="@drawable/transparent"
+                android:paddingHorizontal="25dp"
+                android:src="@drawable/home_page" />
+
             <ImageButton
                 android:id="@+id/main_star_btn"
-                android:paddingHorizontal="25dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/star_page"
-                android:background="@drawable/transparent"/>
+                android:background="@drawable/transparent"
+                android:paddingHorizontal="25dp"
+                android:src="@drawable/star_page" />
+
             <ImageButton
                 android:id="@+id/main_mypage_btn"
-                android:paddingHorizontal="25dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/my_page"
-                android:background="@drawable/transparent"/>
+                android:background="@drawable/transparent"
+                android:paddingHorizontal="25dp"
+                android:src="@drawable/my_page" />
         </LinearLayout>
     </RelativeLayout>
 </LinearLayout>
