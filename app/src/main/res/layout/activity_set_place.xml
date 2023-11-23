@@ -146,7 +146,7 @@
                             android:padding="0dp"
                             android:scaleType="centerCrop"
                             android:src="@drawable/vending_machine"
-                            android:tint="#af000000"
+                            android:tint="#8f000000"
                             tools:ignore="UseAppTint" />
 
                         <TextView
@@ -168,7 +168,7 @@
                             android:padding="0dp"
                             android:scaleType="centerCrop"
                             android:src="@drawable/fish"
-                            android:tint="#af000000"
+                            android:tint="#8f000000"
                             tools:ignore="UseAppTint" />
 
                         <TextView
@@ -197,7 +197,7 @@
                             android:padding="0dp"
                             android:scaleType="centerCrop"
                             android:src="@drawable/clothes_donation"
-                            android:tint="#af000000"
+                            android:tint="#8f000000"
                             tools:ignore="UseAppTint" />
 
                         <TextView
@@ -220,7 +220,7 @@
                             android:padding="0dp"
                             android:scaleType="centerCrop"
                             android:src="@drawable/pull_up_bar"
-                            android:tint="#af000000"
+                            android:tint="#8f000000"
                             tools:ignore="UseAppTint" />
 
                         <TextView
@@ -242,7 +242,7 @@
                             android:padding="0dp"
                             android:scaleType="centerCrop"
                             android:src="@drawable/cigar"
-                            android:tint="#af000000"
+                            android:tint="#8f000000"
                             tools:ignore="UseAppTint" />
 
                         <TextView
