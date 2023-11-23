@@ -9,6 +9,6 @@ class MyApplication : Application() {
         // 다른 초기화 코드들
 
         // Kakao SDK 초기화
-        KakaoSdk.init(this, "")
+        KakaoSdk.init(this, KeyStore.getNativeAppKey())
     }
 }

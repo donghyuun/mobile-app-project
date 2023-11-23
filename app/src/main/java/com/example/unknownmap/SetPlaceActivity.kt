@@ -40,6 +40,12 @@ class SetPlaceActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val binding = ActivitySetPlaceBinding.inflate(layoutInflater)
 
+        //MainActivity의 static 변수에 저장된 유저 정보를 출력해본다
+        Log.d("user", "in SetPlaceActivity, ${MainActivity.staticUserId}")
+        Log.d("user", "in SetPlaceActivity, ${MainActivity.staticUserEmail}")
+        Log.d("user", "in SetPlaceActivity, ${MainActivity.staticUserNickname}")
+        Log.d("user", "in SetPlaceActivity, ${MainActivity.staticUserToken}")
+
         //MainActivity 에서 전달된 위도, 경도값을 변수로 꺼냄
         val latitude = intent.getDoubleExtra("create_latitude", 0.0)
         val longitude = intent.getDoubleExtra("create_longitude", 0.0)
@@ -52,7 +58,7 @@ class SetPlaceActivity : AppCompatActivity() {
         }
 
         var addr = ""
-        MapReverseGeoCoder("API-KEY", MapPoint.mapPointWithGeoCoord(latitude, longitude),
+        MapReverseGeoCoder("", MapPoint.mapPointWithGeoCoord(latitude, longitude),
             object : MapReverseGeoCoder.ReverseGeoCodingResultListener {
                 override fun onReverseGeoCoderFoundAddress(
                     p0: MapReverseGeoCoder?,
@@ -102,7 +108,7 @@ class SetPlaceActivity : AppCompatActivity() {
             currentSelectedNum = 0
             for (i in btnList) {
                 if (i != btnTrashBin) {
-                    i.setColorFilter(Color.parseColor("#af000000"))
+                    i.setColorFilter(Color.parseColor("#8f000000"))
                     i.setBackgroundResource(R.drawable.transparent)
                 }
             }
@@ -114,7 +120,7 @@ class SetPlaceActivity : AppCompatActivity() {
             currentSelectedNum = 1
             for (i in btnList) {
                 if (i != btnVendingMachine) {
-                    i.setColorFilter(Color.parseColor("#af000000"))
+                    i.setColorFilter(Color.parseColor("#8f000000"))
                     i.setBackgroundResource(R.drawable.transparent)
                 }
             }
@@ -127,7 +133,7 @@ class SetPlaceActivity : AppCompatActivity() {
             btnFish.setColorFilter(Color.parseColor("#00000000"))
             for (i in btnList) {
                 if (i != btnFish) {
-                    i.setColorFilter(Color.parseColor("#af000000"))
+                    i.setColorFilter(Color.parseColor("#8f000000"))
                     i.setBackgroundResource(R.drawable.transparent)
                 }
             }
@@ -140,7 +146,7 @@ class SetPlaceActivity : AppCompatActivity() {
             btnClothesDonation.setColorFilter(Color.parseColor("#00000000"))
             for (i in btnList) {
                 if (i != btnClothesDonation) {
-                    i.setColorFilter(Color.parseColor("#af000000"))
+                    i.setColorFilter(Color.parseColor("#8f000000"))
                     i.setBackgroundResource(R.drawable.transparent)
                 }
             }
@@ -153,7 +159,7 @@ class SetPlaceActivity : AppCompatActivity() {
             btnPullUpBar.setColorFilter(Color.parseColor("#00000000"))
             for (i in btnList) {
                 if (i != btnPullUpBar) {
-                    i.setColorFilter(Color.parseColor("#af000000"))
+                    i.setColorFilter(Color.parseColor("#8f000000"))
                     i.setBackgroundResource(R.drawable.transparent)
                 }
             }
@@ -166,7 +172,7 @@ class SetPlaceActivity : AppCompatActivity() {
             btnCigar.setColorFilter(Color.parseColor("#00000000"))
             for (i in btnList) {
                 if (i != btnCigar) {
-                    i.setColorFilter(Color.parseColor("#af000000"))
+                    i.setColorFilter(Color.parseColor("#8f000000"))
                     i.setBackgroundResource(R.drawable.transparent)
                 }
             }
@@ -262,6 +268,7 @@ class SetPlaceActivity : AppCompatActivity() {
             intent.putExtra("isSet", true)
             intent.putExtra("categoryNum", currentSelectedNum)
             intent.putExtra("image", uri.toString())
+            intent.putExtra("star", currentScore)
             // uri는 String으로 변환해서 intent로 넘기고, 받을 때 다시 parse 해야 함
 
             setResult(RESULT_OK, intent)
@@ -276,6 +283,7 @@ class SetPlaceActivity : AppCompatActivity() {
                 star = currentScore
             )
 
+            //Firebase에 저장
             firestore?.collection("sampleMarker")
                 ?.document(name)
                 ?.set(marker)

@@ -1,48 +1,54 @@
 package com.example.unknownmap
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.ContentResolver
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.location.Location
-import android.location.LocationManager
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
-import android.text.BoringLayout
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.unknownmap.databinding.ActivityMainBinding
+import com.example.unknownmap.databinding.BalloonLayoutBinding
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.firestore
-import com.kakao.sdk.auth.model.OAuthToken
-import com.kakao.sdk.common.model.ClientError
-import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
 import net.daum.mf.map.api.CalloutBalloonAdapter
 import net.daum.mf.map.api.MapPOIItem
 import net.daum.mf.map.api.MapPoint
-import net.daum.mf.map.api.MapReverseGeoCoder
 import net.daum.mf.map.api.MapView
-import net.daum.mf.map.api.MapView.CurrentLocationEventListener
 import net.daum.mf.map.api.MapView.CurrentLocationTrackingMode
+import okio.IOException
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 
 class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.MapViewEventListener, MapView.CurrentLocationEventListener {
+
+    //-----------현재 로그인한 유저(나의 기기)-----------//
+    companion object {
+        var staticUserId: Long = 0//Long 타입임, 주의.
+        var staticUserEmail: String = ""
+        var staticUserNickname: String = ""
+        var staticUserToken: String = ""
+    }
+    //----------------------------------------------//
 
     // 현재 MapPoint 위치
     lateinit var currentMapPoint : MapPoint
@@ -53,6 +59,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
     // setPlaceActivity의 결과를 가져오기 위한 객체
     private lateinit var resultLauncher : ActivityResultLauncher<Intent>
+
     fun uriToBitmap(contentResolver: ContentResolver, uri: Uri?): Bitmap? {
         try {
             // URI에서 스트림 열기
@@ -68,7 +75,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
     private var currentTagsNum = 0  // 생성된 마커의 개수
     // Marker 생성 함수
-    fun createMarker(name: String?, latitude:Double, longtitude:Double, uri: Uri?, categoryType: Int?) : MapPOIItem {
+    fun createMarker(name: String?, latitude:Double, longtitude:Double, uri: Uri?, categoryType: Int?, star: Int?) : MapPOIItem {
         val point = MapPoint.mapPointWithGeoCoord(latitude, longtitude)
         val marker = MapPOIItem()
         val contentResolver = contentResolver
@@ -79,12 +86,33 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             currentTagsNum += 1
             mapPoint = point
             customImageBitmap = uriToBitmap(contentResolver, uri)
+            userObject = star
         }
         when (categoryType) {
-            // 추후 마커 커스텀 이미지로 설정할 것!
-            0 -> marker.markerType = MapPOIItem.MarkerType.RedPin // 쓰레기통
-            1 -> marker.markerType = MapPOIItem.MarkerType.BluePin // 자판기
-            2 -> marker.markerType = MapPOIItem.MarkerType.YellowPin // 붕어빵
+            0 -> {
+                marker.markerType = MapPOIItem.MarkerType.CustomImage
+                marker.customImageResourceId = R.drawable.trash_bin
+            }
+            1 -> {
+                marker.markerType = MapPOIItem.MarkerType.CustomImage
+                marker.customImageResourceId = R.drawable.vending_machine
+            }
+            2 -> {
+                marker.markerType = MapPOIItem.MarkerType.CustomImage
+                marker.customImageResourceId = R.drawable.fish
+            }
+            3 -> {
+                marker.markerType = MapPOIItem.MarkerType.CustomImage
+                marker.customImageResourceId = R.drawable.clothes_donation
+            }
+            4 -> {
+                marker.markerType = MapPOIItem.MarkerType.CustomImage
+                marker.customImageResourceId = R.drawable.pull_up_bar
+            }
+            5 -> {
+                marker.markerType = MapPOIItem.MarkerType.CustomImage
+                marker.customImageResourceId = R.drawable.cigar
+            }
         }
 
         /*
@@ -102,7 +130,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         }
         */
 
-        return marker
+        return marker//마커 반환
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -115,20 +143,29 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         val intent = intent
 
         // Intent에서 데이터를 추출
-        val userId = intent.getLongExtra("userId",0)//Long 타입임, 주의.
+        val userId = intent.getLongExtra("userId",0)//Long 타입임, 주의
         val userEmail = intent.getStringExtra("userEmail") ?: ""
         val userNickname = intent.getStringExtra("userNickname") ?: ""
         val userToken = intent.getStringExtra("userToken") ?: ""
 
+        //static 변수 초기화
+        staticUserId = userId
+        staticUserEmail = userEmail
+        staticUserNickname = userNickname
+        staticUserToken = userToken
+
         // 추출한 데이터를 사용
         Log.d("LOGIN", "In MainActivity, User ID: $userId, Email: $userEmail, Nickname: $userNickname, Token: $userToken")
 
-        //----------------------카카오 로그아웃 버튼------------------------//
+        //----------------------마이페이지 이동 버튼------------------------//
         binding.mainMypageBtn.setOnClickListener{
-            kakaoLogout()
+            val intent = Intent(this, MyPageActivity::class.java)
+            startActivity(intent)
+//            kakaoLogout()
         }
 
         val mapView = MapView(this)
+        mapView.setPOIItemEventListener(this)
         val mapViewContainer = binding.mapView as ViewGroup
         mapViewContainer.addView(mapView)
 
@@ -165,9 +202,10 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 val category = result.data?.getIntExtra("categoryNum", 0)
                 val imageString = result.data?.getStringExtra("image")
                 val imageUri = Uri.parse(imageString)
+                val star = result.data?.getIntExtra("star", 0)
 
                 Log.d("kim", "got name : ${name}, got lat :${latitude}, got lon : ${longitude}")
-                mapView.addPOIItem(createMarker(name, latitude!!, longitude!!, imageUri, category))
+                mapView.addPOIItem(createMarker(name, latitude!!, longitude!!, imageUri, category, star))
             }
         }
         // 장소 등록 버튼 리스너, ***누르면 장소 등록 activity 로 이동***
@@ -189,7 +227,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         }
 
         // 경북대학교 마커 생성
-        mapView.addPOIItem(createMarker("경북대학교", 35.8888, 128.6103, null, 0))
+        mapView.addPOIItem(createMarker("경북대학교", 35.8888, 128.6103, null, 0, 0))
         // 현위치 모드 설정
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeadingWithoutMapMoving);
         // mapView(지도)의 중심 위치를 경북대학교로 설정
@@ -212,6 +250,9 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             }
         }
 
+        // 현재 모든 POIItems 담는 배열
+        lateinit var currentPOIItems: Array<MapPOIItem>
+
         // DB에 저장된 데이터 불러오기
         db.collection("sampleMarker")
             .get()
@@ -223,30 +264,136 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                     val category = document.getLong("category")?.toInt() ?: 0
                     // imageUri 및 imageString은 Firestore 문서에 포함되어 있지 않으므로 null로 처리
                     val imageUri: Uri? = null
-
                     val imageString: String? = null
+
+                    val star: Int = document.getLong("star")?.toInt() ?: 0//추가된 것(점수)
+
                     Log.d("kim", "${document.data}")
-                    mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category))
+                    //---------------------------핵심-----------------------------//
+                    mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category, star))
                 }
+                // DB에 저장된 데이터 모두 불러온 후
+                currentPOIItems = mapView.poiItems
             }
             .addOnFailureListener { exception ->
                 Log.w("kim", "Error getting documents.", exception)
             }
+
+        // 카테고리 버튼 색상 초기화
+        fun buttonColorInit() {
+            binding.onlyAllBtn.setBackgroundResource(R.drawable.button_before)
+            binding.onlyTrashBinBtn.setBackgroundResource(R.drawable.button_before)
+            binding.onlyVendingMachineBtn.setBackgroundResource(R.drawable.button_before)
+            binding.onlyFishBtn.setBackgroundResource(R.drawable.button_before)
+            binding.onlyClothesDonationBtn.setBackgroundResource(R.drawable.button_before)
+            binding.onlyPullUpBarBtn.setBackgroundResource(R.drawable.button_before)
+            binding.onlyCigarBtn.setBackgroundResource(R.drawable.button_before)
+        }
+
+        // 쓰레기통 마커만 보여주는 버튼 리스너
+        binding.onlyTrashBinBtn.setOnClickListener {
+            buttonColorInit()
+            binding.onlyTrashBinBtn.setBackgroundResource(R.drawable.button_after)
+
+            mapView.removeAllPOIItems()
+
+            for (poiItem in currentPOIItems) {
+                if (poiItem.customImageResourceId == R.drawable.trash_bin)
+                    mapView.addPOIItem(poiItem)
+            }
+        }
+        // 자판기 마커만 보여주는 버튼 리스너
+        binding.onlyVendingMachineBtn.setOnClickListener {
+            buttonColorInit()
+            binding.onlyVendingMachineBtn.setBackgroundResource(R.drawable.button_after)
+
+            mapView.removeAllPOIItems()
+
+            for (poiItem in currentPOIItems) {
+                if (poiItem.customImageResourceId == R.drawable.vending_machine)
+                    mapView.addPOIItem(poiItem)
+            }
+        }
+        // 붕어빵 마커만 보여주는 버튼 리스너
+        binding.onlyFishBtn.setOnClickListener {
+            buttonColorInit()
+            binding.onlyFishBtn.setBackgroundResource(R.drawable.button_after)
+
+            mapView.removeAllPOIItems()
+
+            for (poiItem in currentPOIItems) {
+                if (poiItem.customImageResourceId == R.drawable.fish)
+                    mapView.addPOIItem(poiItem)
+            }
+        }
+        // 의류 수거함 마커만 보여주는 버튼 리스너
+        binding.onlyClothesDonationBtn.setOnClickListener {
+            buttonColorInit()
+            binding.onlyClothesDonationBtn.setBackgroundResource(R.drawable.button_after)
+
+            mapView.removeAllPOIItems()
+
+            for (poiItem in currentPOIItems) {
+                if (poiItem.customImageResourceId == R.drawable.clothes_donation)
+                    mapView.addPOIItem(poiItem)
+            }
+        }
+        // 철봉 마커만 보여주는 버튼 리스너
+        binding.onlyPullUpBarBtn.setOnClickListener {
+            buttonColorInit()
+            binding.onlyPullUpBarBtn.setBackgroundResource(R.drawable.button_after)
+
+            mapView.removeAllPOIItems()
+
+            for (poiItem in currentPOIItems) {
+                if (poiItem.customImageResourceId == R.drawable.pull_up_bar)
+                    mapView.addPOIItem(poiItem)
+            }
+        }
+        // 흡연장 마커만 보여주는 버튼 리스너
+        binding.onlyCigarBtn.setOnClickListener {
+            buttonColorInit()
+            binding.onlyCigarBtn.setBackgroundResource(R.drawable.button_after)
+
+            mapView.removeAllPOIItems()
+
+            for (poiItem in currentPOIItems) {
+                if (poiItem.customImageResourceId == R.drawable.cigar)
+                    mapView.addPOIItem(poiItem)
+            }
+        }
+        // 모든 마커 보여주는 버튼 리스너
+        binding.onlyAllBtn.setOnClickListener {
+            buttonColorInit()
+            binding.onlyAllBtn.setBackgroundResource(R.drawable.button_after)
+
+            val poiItems: Array<MapPOIItem> = mapView.poiItems
+            mapView.removeAllPOIItems()
+
+            for (poiItem in currentPOIItems) {
+                mapView.addPOIItem(poiItem)
+            }
+        }
     }
 
     // 커스텀 말풍선 - binding으로 코드를 더 깔끔하게 수정할 수 있을 듯함
+    // CustomBalloonAdapter 클래스 수정
     class CustomBalloonAdapter(inflater: LayoutInflater): CalloutBalloonAdapter {
         val mCalloutBalloon: View = inflater.inflate(R.layout.balloon_layout, null)
         val category: TextView = mCalloutBalloon.findViewById(R.id.ball_category)
         val name: TextView = mCalloutBalloon.findViewById(R.id.ball_tv_name)
         val address: TextView = mCalloutBalloon.findViewById(R.id.ball_tv_address)
         val image: ImageView = mCalloutBalloon.findViewById(R.id.ball_show_image)
+
         override fun getCalloutBalloon(poiItem: MapPOIItem?): View {
             // 마커 클릭 시 나오는 말풍선
-            category.text = when (poiItem?.markerType) {
-                MapPOIItem.MarkerType.RedPin -> "쓰레기통"
-                MapPOIItem.MarkerType.BluePin -> "자판기"
-                MapPOIItem.MarkerType.YellowPin -> "붕어빵"
+            category.text = when (poiItem?.customImageResourceId) {
+                R.drawable.trash_bin -> "쓰레기통"
+                R.drawable.vending_machine -> "자판기"
+                R.drawable.fish -> "붕어빵"
+                R.drawable.clothes_donation -> "의류 수거함"
+                R.drawable.pull_up_bar -> "철봉"
+                R.drawable.cigar -> "흡연장"
                 else -> "기타"
             }
             name.text = poiItem?.itemName   // 해당 마커의 정보 이용 가능
@@ -256,15 +403,19 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 scaleType = ImageView.ScaleType.CENTER_CROP
             }
             address.text = "getCalloutBalloon"
+            Log.d("window", "getCalloutBalloon run")
             return mCalloutBalloon
         }
 
         override fun getPressedCalloutBalloon(poiItem: MapPOIItem?): View {
             // 말풍선 클릭 시
             address.text = "getPressedCalloutBalloon"
+            Log.d("window", "getPressedCalloutBalloon run")
+
             return mCalloutBalloon
         }
     }
+
 
     // CurrentLocationListener Interface start
     override fun onCurrentLocationUpdate(p0: MapView?, p1: MapPoint?, p2: Float) {
@@ -281,14 +432,87 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
     // POIItemListener Interface
     override fun onPOIItemSelected(p0: MapView?, p1: MapPOIItem?) { }
-    override fun onCalloutBalloonOfPOIItemTouched(p0: MapView?, p1: MapPOIItem?) {}
+    override fun onCalloutBalloonOfPOIItemTouched(p0: MapView?, poiItem: MapPOIItem?) {
+        // 마커의 인포윈도우를 터치했을 때의 동작을 정의하는 부분
+        Log.d("window", "onCalloutBalloonOfPOIItemTouched1 run")
+
+        // 여기에서 Intent를 생성하고 필요한 데이터를 추가
+        val intent = Intent(this@MainActivity, ShowPlaceActivity::class.java)
+
+        // 마커에 대한 정보를 Intent에 추가
+        intent.putExtra("show_name", poiItem?.itemName)
+        Log.d("show_name", poiItem?.itemName.toString())
+        intent.putExtra("show_latitude", poiItem?.mapPoint?.mapPointGeoCoord?.latitude ?: 0.0)
+        intent.putExtra("show_longitude", poiItem?.mapPoint?.mapPointGeoCoord?.longitude ?: 0.0)
+        intent.putExtra("show_category", getCategoryType(poiItem?.markerType))
+        intent.putExtra("show_star", poiItem?.userObject as Int)
+
+        // 이미지를 특정 크기로 조절하고 회전 정보 고려
+        val scaledAndRotatedBitmap = rotateBitmap(scaleBitmap(poiItem?.customImageBitmap, 500, 500), getRotationFromExif(poiItem))
+
+        // 이미지를 ByteArrayOutputStream에 압축
+        val stream = ByteArrayOutputStream()
+        scaledAndRotatedBitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        val byteArray = stream.toByteArray()
+
+        // Intent에 바이트 배열 추가
+        intent.putExtra("show_image", byteArray)
+
+        // 생성된 Intent를 사용하여 다른 Activity 시작
+        startActivity(intent)
+    }
+
+    // 이미지의 회전 정보를 가져오는 함수
+    private fun getRotationFromExif(poiItem: MapPOIItem?): Int {
+        try {
+            val outputStream = ByteArrayOutputStream()
+            poiItem?.customImageBitmap?.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            val bytes = outputStream.toByteArray()
+
+            val ei = ExifInterface(ByteArrayInputStream(bytes))
+            return when (ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> 90
+                ExifInterface.ORIENTATION_ROTATE_180 -> 180
+                ExifInterface.ORIENTATION_ROTATE_270 -> 270
+                else -> 0
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return 0
+    }
+
+    // 이미지를 주어진 각도로 회전하는 함수
+    private fun rotateBitmap(bitmap: Bitmap?, degrees: Int): Bitmap? {
+        if (bitmap == null) return null
+
+        val matrix = Matrix()
+        matrix.postRotate(degrees.toFloat())
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    }
+
+    private fun scaleBitmap(bitmap: Bitmap?, targetWidth: Int, targetHeight: Int): Bitmap? {
+        if (bitmap == null) return null
+        return Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true)
+    }
+    private fun getCategoryType(markerType: MapPOIItem.MarkerType?): Int {
+        return when (markerType) {
+            MapPOIItem.MarkerType.RedPin -> 0 // 쓰레기통
+            MapPOIItem.MarkerType.BluePin -> 1 // 자판기
+            MapPOIItem.MarkerType.YellowPin -> 2 // 붕어빵
+            else -> 3 // 기타
+        }
+    }
+
+
     override fun onCalloutBalloonOfPOIItemTouched(
         p0: MapView?,
         p1: MapPOIItem?,
         p2: MapPOIItem.CalloutBalloonButtonType?
     ) {
-        TODO("Not yet implemented")
+        Log.d("window", "onCalloutBalloonOfPOIItemTouched2 run")
     }
+
     override fun onDraggablePOIItemMoved(p0: MapView?, p1: MapPOIItem?, p2: MapPoint?) {}
 
     // POIItemListener Interface end
@@ -306,51 +530,32 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
     // MapViewEventListener Interface end
 
-    // KAKAO 로그인 코드 start
-    fun kakaoLogout(){
-        // 로그아웃 다이얼로그 생성
-        val dialogBuilder = AlertDialog.Builder(this)
-        dialogBuilder.setMessage("정말 로그아웃 하시겠습니까?")
-            .setCancelable(false)
-            .setPositiveButton("확인", DialogInterface.OnClickListener {
-                    dialog, id -> confirmLogout()
-            })
-            .setNegativeButton("취소", DialogInterface.OnClickListener {
-                    dialog, id -> dialog.cancel()
-            })
-
-        val alert = dialogBuilder.create()
-        alert.setTitle("로그아웃")
-        alert.show()
+    //------------------생명 주기 확인--------------------//
+    override fun onStart() {
+        super.onStart()
+        Log.d("MainActivity", "onStart") // 로그 추가
     }
 
-    private fun confirmLogout(){
-        //로그아웃
-        UserApiClient.instance.logout { error ->
-            if (error != null) {
-                Log.e("LOGOUT", "로그아웃 실패. SDK에서 토큰 삭제됨", error)
-            } else {
-                Log.i("LOGOUT", "로그아웃 성공. SDK에서 토큰 삭제됨")
-                val intent = Intent(this, LoginActivity::class.java)
-                //스택에 남아있는 모든 액티비티를 제거하고, 해당 엑티비티를 시작함
-                startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
-                //현재 액티비티를 종료
-                finish()
-            }
-        }
+    override fun onResume() {
+        super.onResume()
+        Log.d("MainActivity", "onResume") // 로그 추가
     }
-    fun kakaoUnlink() {
-        //연결 끊기
-        UserApiClient.instance.unlink { error ->
-            if (error != null) {
-                Log.e("LOGOUT", "연결 끊기 실패", error)
-            } else {
-                Log.i("LOGOUT", "연결 끊기 성공. SDK에서 토큰 삭제 됨")
-            }
-        }
-        finish()
+
+    override fun onPause() {
+        super.onPause()
+        Log.d("MainActivity", "onPause") // 로그 추가
     }
-    // 카카오 로그인 코드 end
+
+    override fun onStop() {
+        super.onStop()
+        Log.d("MainActivity", "onStop") // 로그 추가
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("MainActivity", "onDestroy") // 로그 추가
+    }
+
 }
 
 /*        // 앱 해시 키 얻는 코드
