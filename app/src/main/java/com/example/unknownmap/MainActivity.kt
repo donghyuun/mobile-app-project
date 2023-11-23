@@ -8,8 +8,10 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.location.Location
 import android.location.LocationManager
+import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -43,6 +45,8 @@ import net.daum.mf.map.api.MapReverseGeoCoder
 import net.daum.mf.map.api.MapView
 import net.daum.mf.map.api.MapView.CurrentLocationEventListener
 import net.daum.mf.map.api.MapView.CurrentLocationTrackingMode
+import okio.IOException
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 
 class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.MapViewEventListener, MapView.CurrentLocationEventListener {
@@ -71,7 +75,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
     private var currentTagsNum = 0  // 생성된 마커의 개수
     // Marker 생성 함수
-    fun createMarker(name: String?, latitude:Double, longtitude:Double, uri: Uri?, categoryType: Int?) : MapPOIItem {
+    fun createMarker(name: String?, latitude:Double, longtitude:Double, uri: Uri?, categoryType: Int?, star: Int?) : MapPOIItem {
         val point = MapPoint.mapPointWithGeoCoord(latitude, longtitude)
         val marker = MapPOIItem()
         val contentResolver = contentResolver
@@ -82,6 +86,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             currentTagsNum += 1
             mapPoint = point
             customImageBitmap = uriToBitmap(contentResolver, uri)
+            userObject = star
         }
         when (categoryType) {
             // 추후 마커 커스텀 이미지로 설정할 것!
@@ -169,9 +174,10 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 val category = result.data?.getIntExtra("categoryNum", 0)
                 val imageString = result.data?.getStringExtra("image")
                 val imageUri = Uri.parse(imageString)
+                val star = result.data?.getIntExtra("star", 0)
 
                 Log.d("kim", "got name : ${name}, got lat :${latitude}, got lon : ${longitude}")
-                mapView.addPOIItem(createMarker(name, latitude!!, longitude!!, imageUri, category))
+                mapView.addPOIItem(createMarker(name, latitude!!, longitude!!, imageUri, category, star))
             }
         }
         // 장소 등록 버튼 리스너, ***누르면 장소 등록 activity 로 이동***
@@ -193,7 +199,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         }
 
         // 경북대학교 마커 생성
-        mapView.addPOIItem(createMarker("경북대학교", 35.8888, 128.6103, null, 0))
+        mapView.addPOIItem(createMarker("경북대학교", 35.8888, 128.6103, null, 0, 0))
         // 현위치 모드 설정
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeadingWithoutMapMoving);
         // mapView(지도)의 중심 위치를 경북대학교로 설정
@@ -227,11 +233,13 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                     val category = document.getLong("category")?.toInt() ?: 0
                     // imageUri 및 imageString은 Firestore 문서에 포함되어 있지 않으므로 null로 처리
                     val imageUri: Uri? = null
-
                     val imageString: String? = null
+
+                    val star: Int = document.getLong("star")?.toInt() ?: 0//추가된 것(점수)
+
                     Log.d("kim", "${document.data}")
                     //---------------------------핵심-----------------------------//
-                    mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category))
+                    mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category, star))
                 }
             }
             .addOnFailureListener { exception ->
@@ -305,10 +313,14 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         intent.putExtra("show_latitude", poiItem?.mapPoint?.mapPointGeoCoord?.latitude ?: 0.0)
         intent.putExtra("show_longitude", poiItem?.mapPoint?.mapPointGeoCoord?.longitude ?: 0.0)
         intent.putExtra("show_category", getCategoryType(poiItem?.markerType))
+        intent.putExtra("show_star", poiItem?.userObject as Int)
+
+        // 이미지를 특정 크기로 조절하고 회전 정보 고려
+        val scaledAndRotatedBitmap = rotateBitmap(scaleBitmap(poiItem?.customImageBitmap, 500, 500), getRotationFromExif(poiItem))
 
         // 이미지를 ByteArrayOutputStream에 압축
         val stream = ByteArrayOutputStream()
-        poiItem?.customImageBitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        scaledAndRotatedBitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)
         val byteArray = stream.toByteArray()
 
         // Intent에 바이트 배열 추가
@@ -318,7 +330,39 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         startActivity(intent)
     }
 
+    // 이미지의 회전 정보를 가져오는 함수
+    private fun getRotationFromExif(poiItem: MapPOIItem?): Int {
+        try {
+            val outputStream = ByteArrayOutputStream()
+            poiItem?.customImageBitmap?.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            val bytes = outputStream.toByteArray()
 
+            val ei = ExifInterface(ByteArrayInputStream(bytes))
+            return when (ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> 90
+                ExifInterface.ORIENTATION_ROTATE_180 -> 180
+                ExifInterface.ORIENTATION_ROTATE_270 -> 270
+                else -> 0
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return 0
+    }
+
+    // 이미지를 주어진 각도로 회전하는 함수
+    private fun rotateBitmap(bitmap: Bitmap?, degrees: Int): Bitmap? {
+        if (bitmap == null) return null
+
+        val matrix = Matrix()
+        matrix.postRotate(degrees.toFloat())
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    }
+
+    private fun scaleBitmap(bitmap: Bitmap?, targetWidth: Int, targetHeight: Int): Bitmap? {
+        if (bitmap == null) return null
+        return Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true)
+    }
     private fun getCategoryType(markerType: MapPOIItem.MarkerType?): Int {
         return when (markerType) {
             MapPOIItem.MarkerType.RedPin -> 0 // 쓰레기통

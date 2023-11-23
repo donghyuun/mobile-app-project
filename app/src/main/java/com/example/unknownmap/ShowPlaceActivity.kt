@@ -18,19 +18,65 @@ class ShowPlaceActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)//이거 있어야 이미치 처리할 수 있음
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_show_place)
+        val binding = ActivityShowPlaceBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         // Intent에서 데이터를 추출
         val name = intent.getStringExtra("show_name") ?: ""
-        val latitude = intent.getDoubleExtra("show_latitude", 0.0)
-        val longitude = intent.getDoubleExtra("show_longitude", 0.0)
+        val latitude = String.format("%.2f", intent.getDoubleExtra("show_latitude", 0.0))
+        val longitude = String.format("%.2f", intent.getDoubleExtra("show_longitude", 0.0))
         val category = intent.getIntExtra("show_category", 0)
         val byteArray = intent.getByteArrayExtra("show_image")
+        val star = intent.getIntExtra("show_star", 0)
+        Log.d("star", star.toString())
         val imageBitmap = if (byteArray != null) {
             // 바이트 배열을 Bitmap으로 변환
             BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
         } else {
             null
+        }
+        
+        //닫기 버튼
+        binding.closeButton.setOnClickListener {
+            finish()
+        }
+        
+        if(star == 0){
+            binding.starScore1.setImageResource(R.drawable.star_dark)
+            binding.starScore2.setImageResource(R.drawable.star_dark)
+            binding.starScore3.setImageResource(R.drawable.star_dark)
+            binding.starScore4.setImageResource(R.drawable.star_dark)
+            binding.starScore5.setImageResource(R.drawable.star_dark)
+        }else if(star == 1){
+            binding.starScore1.setImageResource(R.drawable.star_light)
+            binding.starScore2.setImageResource(R.drawable.star_dark)
+            binding.starScore3.setImageResource(R.drawable.star_dark)
+            binding.starScore4.setImageResource(R.drawable.star_dark)
+            binding.starScore5.setImageResource(R.drawable.star_dark)
+        }else if(star == 2) {
+            binding.starScore1.setImageResource(R.drawable.star_light)
+            binding.starScore2.setImageResource(R.drawable.star_light)
+            binding.starScore3.setImageResource(R.drawable.star_dark)
+            binding.starScore4.setImageResource(R.drawable.star_dark)
+            binding.starScore5.setImageResource(R.drawable.star_dark)
+        }else if(star == 3) {
+            binding.starScore1.setImageResource(R.drawable.star_light)
+            binding.starScore2.setImageResource(R.drawable.star_light)
+            binding.starScore3.setImageResource(R.drawable.star_light)
+            binding.starScore4.setImageResource(R.drawable.star_dark)
+            binding.starScore5.setImageResource(R.drawable.star_dark)
+        }else if(star == 4) {
+            binding.starScore1.setImageResource(R.drawable.star_light)
+            binding.starScore2.setImageResource(R.drawable.star_light)
+            binding.starScore3.setImageResource(R.drawable.star_light)
+            binding.starScore4.setImageResource(R.drawable.star_light)
+            binding.starScore5.setImageResource(R.drawable.star_dark)
+        }else if(star == 5){
+            binding.starScore1.setImageResource(R.drawable.star_light)
+            binding.starScore2.setImageResource(R.drawable.star_light)
+            binding.starScore3.setImageResource(R.drawable.star_light)
+            binding.starScore4.setImageResource(R.drawable.star_light)
+            binding.starScore5.setImageResource(R.drawable.star_light)
         }
 
         Log.d("show_image from intent", imageBitmap?.toString() ?: "Bitmap is null")

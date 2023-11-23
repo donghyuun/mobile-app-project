@@ -262,6 +262,7 @@ class SetPlaceActivity : AppCompatActivity() {
             intent.putExtra("isSet", true)
             intent.putExtra("categoryNum", currentSelectedNum)
             intent.putExtra("image", uri.toString())
+            intent.putExtra("star", currentScore)
             // uri는 String으로 변환해서 intent로 넘기고, 받을 때 다시 parse 해야 함
 
             setResult(RESULT_OK, intent)
@@ -276,6 +277,7 @@ class SetPlaceActivity : AppCompatActivity() {
                 star = currentScore
             )
 
+            //Firebase에 저장
             firestore?.collection("sampleMarker")
                 ?.document(name)
                 ?.set(marker)
