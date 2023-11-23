@@ -35,10 +35,29 @@ class ShowPlaceActivity : AppCompatActivity() {
         } else {
             null
         }
-        
+
+        //MainActivity의 static 변수에 저장된 유저 정보를 출력해본다
+        Log.d("user", "in ShowPlaceActivity, ${MainActivity.staticUserId}")
+        Log.d("user", "in ShowPlaceActivity, ${MainActivity.staticUserEmail}")
+        Log.d("user", "in ShowPlaceActivity, ${MainActivity.staticUserNickname}")
+        Log.d("user", "in ShowPlaceActivity, ${MainActivity.staticUserToken}")
+
         //닫기 버튼
         binding.closeButton.setOnClickListener {
             finish()
+        }
+        binding.heartButton.setOnClickListener {
+            // 현재 이미지 리소스 가져오기
+            val currentImageResource = binding.heartButton.drawable
+
+            // 현재 이미지와 비교하여 변경
+            if (currentImageResource.constantState == resources.getDrawable(R.drawable.blank_heart).constantState) {
+                // 현재 이미지가 blank_heart이면 filled_heart로 변경
+                binding.heartButton.setImageResource(R.drawable.red_heart)
+            } else {
+                // 현재 이미지가 red_heart이면 blank_heart로 변경
+                binding.heartButton.setImageResource(R.drawable.blank_heart)
+            }
         }
         
         if(star == 0){

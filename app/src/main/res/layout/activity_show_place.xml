@@ -4,13 +4,26 @@
     android:layout_height="match_parent"
     android:layout_gravity="center"
     android:gravity="center"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/white">
+    >
 
-    <!-- 닫기 버튼 -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <!-- 즐겨찾기 버튼 -->
+        <ImageView
+            android:id="@+id/heartButton"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="6dp"
+            android:src="@drawable/blank_heart"/>
+
+        <!-- 닫기 버튼 -->
         <ImageView
             android:id="@+id/closeButton"
             android:layout_width="30dp"
@@ -29,6 +42,7 @@
         android:layout_height="wrap_content"
         android:textSize="20sp"
         android:layout_marginTop="16dp"
+        android:textColor="#727272"
         android:layout_centerHorizontal="true"/>
 
     <TextView
@@ -36,6 +50,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="16sp"
+        android:textColor="#727272"
         android:layout_below="@id/show_name_textView"
         android:layout_marginTop="8dp"
         android:layout_centerHorizontal="true"/>
@@ -45,6 +60,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="16sp"
+        android:textColor="#727272"
         android:layout_below="@id/show_location_textView"
         android:layout_marginTop="8dp"
         android:layout_centerHorizontal="true"/>
@@ -59,9 +75,10 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="40dp"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginTop="5dp">
 
         <ImageView
             android:id="@+id/star_score1"

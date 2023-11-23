@@ -1,27 +1,19 @@
 package com.example.unknownmap
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.ContentResolver
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
-import android.location.Location
-import android.location.LocationManager
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
-import android.text.BoringLayout
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -33,23 +25,26 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.firestore
-import com.kakao.sdk.auth.model.OAuthToken
-import com.kakao.sdk.common.model.ClientError
-import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
-import kotlinx.coroutines.Dispatchers.Main
 import net.daum.mf.map.api.CalloutBalloonAdapter
 import net.daum.mf.map.api.MapPOIItem
 import net.daum.mf.map.api.MapPoint
-import net.daum.mf.map.api.MapReverseGeoCoder
 import net.daum.mf.map.api.MapView
-import net.daum.mf.map.api.MapView.CurrentLocationEventListener
 import net.daum.mf.map.api.MapView.CurrentLocationTrackingMode
 import okio.IOException
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 
 class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.MapViewEventListener, MapView.CurrentLocationEventListener {
+
+    //-----------현재 로그인한 유저(나의 기기)-----------//
+    companion object {
+        var staticUserId: Long = 0//Long 타입임, 주의.
+        var staticUserEmail: String = ""
+        var staticUserNickname: String = ""
+        var staticUserToken: String = ""
+    }
+    //----------------------------------------------//
 
     // 현재 MapPoint 위치
     lateinit var currentMapPoint : MapPoint
@@ -123,10 +118,16 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         val intent = intent
 
         // Intent에서 데이터를 추출
-        val userId = intent.getLongExtra("userId",0)//Long 타입임, 주의.
+        val userId = intent.getLongExtra("userId",0)//Long 타입임, 주의
         val userEmail = intent.getStringExtra("userEmail") ?: ""
         val userNickname = intent.getStringExtra("userNickname") ?: ""
         val userToken = intent.getStringExtra("userToken") ?: ""
+
+        //static 변수 초기화
+        staticUserId = userId
+        staticUserEmail = userEmail
+        staticUserNickname = userNickname
+        staticUserToken = userToken
 
         // 추출한 데이터를 사용
         Log.d("LOGIN", "In MainActivity, User ID: $userId, Email: $userEmail, Nickname: $userNickname, Token: $userToken")

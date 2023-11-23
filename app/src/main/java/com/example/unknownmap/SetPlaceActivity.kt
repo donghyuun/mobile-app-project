@@ -40,6 +40,12 @@ class SetPlaceActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val binding = ActivitySetPlaceBinding.inflate(layoutInflater)
 
+        //MainActivity의 static 변수에 저장된 유저 정보를 출력해본다
+        Log.d("user", "in SetPlaceActivity, ${MainActivity.staticUserId}")
+        Log.d("user", "in SetPlaceActivity, ${MainActivity.staticUserEmail}")
+        Log.d("user", "in SetPlaceActivity, ${MainActivity.staticUserNickname}")
+        Log.d("user", "in SetPlaceActivity, ${MainActivity.staticUserToken}")
+
         //MainActivity 에서 전달된 위도, 경도값을 변수로 꺼냄
         val latitude = intent.getDoubleExtra("create_latitude", 0.0)
         val longitude = intent.getDoubleExtra("create_longitude", 0.0)
