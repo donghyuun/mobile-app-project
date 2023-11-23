@@ -43,7 +43,7 @@ class ShowPlaceActivity : AppCompatActivity() {
 
         // 값 설정
         nameTextView.text = name
-        locationTextView.text = "위도: $latitude, 경도: $longitude"
+        locationTextView.text = "위도: $latitude\n경도: $longitude"
         categoryTextView.text = getCategoryString(category)
         imageView.setImageBitmap(imageBitmap)
     }
