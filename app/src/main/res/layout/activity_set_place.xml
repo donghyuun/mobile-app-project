@@ -58,6 +58,7 @@
                 android:backgroundTint="@color/gainsboro"
                 android:elevation="4dp"
                 android:hint="장소 이름을 입력하세요"
+                android:textColorHint="#727272"
                 android:inputType="text"
                 android:maxLength="30"
                 android:paddingStart="15dp"
@@ -78,7 +79,7 @@
                 android:layout_height="40dp"
                 android:background="@drawable/corner_round"
                 android:backgroundTint="@color/gainsboro"
-                android:textColor="#FF888888"
+                android:textColor="#727272"
                 android:gravity="center_vertical"
                 android:text="주소를 찾고 있어요..."
                 android:paddingLeft="12dp"
@@ -129,7 +130,8 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="쓰레기통" />
+                            android:text="쓰레기통"
+                            android:textColor="#727272"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -152,7 +154,8 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="자판기" />
+                            android:text="자판기"
+                            android:textColor="#727272"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -174,7 +177,8 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="붕어빵" />
+                            android:text="붕어빵"
+                            android:textColor="#727272"/>
                     </LinearLayout>
                 </LinearLayout>
 
@@ -203,7 +207,8 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="의류 수거함" />
+                            android:text="의류 수거함"
+                            android:textColor="#727272"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -226,7 +231,8 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="철봉" />
+                            android:text="철봉"
+                            android:textColor="#727272"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -248,7 +254,8 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="흡연장" />
+                            android:text="흡연장"
+                            android:textColor="#727272"/>
                     </LinearLayout>
                 </LinearLayout>
 
@@ -298,6 +305,7 @@
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
                     android:text="사진을 업로드하세요!"
+                    android:textColor="#727272"
                     android:textSize="17sp"/>
 
                 <ImageView

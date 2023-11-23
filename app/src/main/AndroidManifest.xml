@@ -20,6 +20,9 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name=".MyPageActivity"
+            android:exported="false" />
+        <activity
             android:name=".ShowPlaceActivity"
             android:exported="false" />
         <activity
@@ -58,11 +61,11 @@
             android:value="6e41e6242e1a85e5375ac049fc437c88" />
 
         <service
-            android:name="com.example.unknownmap.SLocationService"
+            android:name=".SLocationService"
             android:exported="false">
+
             <!-- 서비스와 관련된 설정들을 추가할 수 있습니다. -->
         </service>
-
     </application>
 
 </manifest>

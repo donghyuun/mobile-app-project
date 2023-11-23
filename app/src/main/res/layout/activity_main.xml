@@ -38,7 +38,8 @@
             android:background="@drawable/corner_round"
             android:backgroundTint="@color/gainsboro"
             android:elevation="4dp"
-            android:hint="현재 장소명"
+            android:hint="현재 장소명을 입력하세요"
+            android:textColorHint="#727272"
             android:paddingStart="10dp" />
 
         <HorizontalScrollView
