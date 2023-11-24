@@ -21,11 +21,18 @@ class MyPageActivity : AppCompatActivity() {
         binding.myPageUserNickname.text = "닉네임\n${MainActivity.staticUserNickname}"
         binding.myPageUserToken.text = "토큰 정보\n${MainActivity.staticUserToken}"
 
+        //닫기 버튼
         binding.closeButton.setOnClickListener {
             finish()
         }
+        //로그아웃 버튼
         binding.logoutBtn.setOnClickListener{
             kakaoLogout()
+        }
+        //홈버튼
+        binding.mainHomeBtn.setOnClickListener{
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
         }
     }
 
