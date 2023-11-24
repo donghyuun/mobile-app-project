@@ -25,6 +25,7 @@ import net.daum.mf.map.api.MapView
 import okhttp3.Address
 import java.net.URI
 import java.util.Collections
+import java.util.UUID
 
 //***********************장소 등록 버튼 눌렀을때 보이는 액티비티***********************//
 class SetPlaceActivity : AppCompatActivity() {
@@ -260,6 +261,7 @@ class SetPlaceActivity : AppCompatActivity() {
         // 등록 버튼 리스너 ***Marker 클래스에 넣을 값들을 intent로 MainActivity로 넘겨줌***
         binding.setPlaceSetBtn.setOnClickListener {
             val name = binding.placeName.text.toString()
+            val uniqueId = UUID.randomUUID().toString()//랜덤한 아이디(키값) 생성, DB저장용, but MainActivity에서도 사용해야 하므로 intent로 넘겨줌
 
             intent.putExtra("set_latitude", latitude)
             intent.putExtra("set_longitude", longitude)
@@ -269,12 +271,14 @@ class SetPlaceActivity : AppCompatActivity() {
             intent.putExtra("categoryNum", currentSelectedNum)
             intent.putExtra("image", uri.toString())
             intent.putExtra("star", currentScore)
+            intent.putExtra("id", uniqueId)
             // uri는 String으로 변환해서 intent로 넘기고, 받을 때 다시 parse 해야 함
 
             setResult(RESULT_OK, intent)
 
             // FireStore 에 저장
             val marker = Marker(
+                id = uniqueId,
                 name = name,
                 gps = GeoPoint(latitude, longitude),
                 category = currentSelectedNum,
@@ -285,7 +289,7 @@ class SetPlaceActivity : AppCompatActivity() {
 
             //Firebase에 저장
             firestore?.collection("sampleMarker")
-                ?.document(name)
+                ?.document(marker.id)
                 ?.set(marker)
                 ?.addOnSuccessListener {
                     finish()

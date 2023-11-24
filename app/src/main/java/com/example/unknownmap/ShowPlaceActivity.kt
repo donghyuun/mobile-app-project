@@ -1,8 +1,6 @@
 package com.example.unknownmap
 
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -11,7 +9,9 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.unknownmap.databinding.ActivityShowPlaceBinding
+import com.google.firebase.firestore.FirebaseFirestore
 import net.daum.mf.map.api.MapPOIItem
+import java.util.Date
 
 class ShowPlaceActivity : AppCompatActivity() {
 
@@ -28,6 +28,7 @@ class ShowPlaceActivity : AppCompatActivity() {
         val category = intent.getIntExtra("show_category", 0)
         val byteArray = intent.getByteArrayExtra("show_image")
         val star = intent.getIntExtra("show_star", 0)
+        val id = intent.getStringExtra("show_id") ?: ""
         Log.d("star", star.toString())
         val imageBitmap = if (byteArray != null) {
             // 바이트 배열을 Bitmap으로 변환
@@ -58,6 +59,23 @@ class ShowPlaceActivity : AppCompatActivity() {
                 // 현재 이미지가 red_heart이면 blank_heart로 변경
                 binding.heartButton.setImageResource(R.drawable.blank_heart)
             }
+        }
+        //리뷰 등록 버튼
+        binding.submitCommentButton.setOnClickListener {
+            //입력창 내용 가져오기
+            val content = binding.commentEditText.text.toString()
+            val review = Review()
+            review.markerId = id
+            review.addReview(MainActivity.staticUserId.toString(), MainActivity.staticUserNickname, content, Date())
+            //리뷰 등록
+            val db = FirebaseFirestore.getInstance()
+            db.collection("reviews").document(id).set(review)//id는 마커의 id
+                .addOnSuccessListener {
+                    Log.d("review", "DocumentSnapshot successfully written!")
+                }
+                .addOnFailureListener { e ->
+                    Log.w("review", "Error writing document", e)
+                }
         }
         
         if(star == 0){
