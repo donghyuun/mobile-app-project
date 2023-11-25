@@ -9,7 +9,10 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.unknownmap.databinding.ActivityShowPlaceBinding
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.firestore.toObject
 import net.daum.mf.map.api.MapPOIItem
 import java.util.Date
 
@@ -69,12 +72,32 @@ class ShowPlaceActivity : AppCompatActivity() {
             review.addReview(MainActivity.staticUserId.toString(), MainActivity.staticUserNickname, content, Date())
             //리뷰 등록
             val db = FirebaseFirestore.getInstance()
-            db.collection("reviews").document(id).set(review)//id는 마커의 id
-                .addOnSuccessListener {
-                    Log.d("review", "DocumentSnapshot successfully written!")
-                }
-                .addOnFailureListener { e ->
-                    Log.w("review", "Error writing document", e)
+            val docRef = db.collection("reviews").document(id)
+            docRef.get()
+                .addOnSuccessListener { document: DocumentSnapshot ->
+                    if(document != null && document.exists()){
+                        //기존에 문서가 존재하는 경우, 기존의 reviewList 가져옴
+                        val existingReviewList = document.data?.get("reviewList") as MutableList<KeyValueElement>
+                        //새 리뷰를 기존 reviewList에 추가
+                        existingReviewList.addAll(review.reviewList)
+                        //firebase 문서 업데이트
+                        docRef.update("reviewList", existingReviewList)
+                            .addOnSuccessListener {
+                                Log.d("DB", "reviewList successfully updated in existing document!")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.d("DB", "Fail, can not updated exsisting reviewList", e)
+                            }
+                    } else{
+                        //기존 문서가 존재하지 않는 경우, 새 문서 생성
+                        docRef.set(review)
+                            .addOnSuccessListener {
+                                Log.d("DB", "new reviewList successfully created!")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.w("DB", "Fail, can not create new reviewList", e)
+                            }
+                    }
                 }
         }
         
