@@ -100,7 +100,7 @@ class ShowPlaceActivity : AppCompatActivity() {
                     }
                 }
         }
-        
+
         if(star == 0){
             binding.starScore1.setImageResource(R.drawable.star_dark)
             binding.starScore2.setImageResource(R.drawable.star_dark)
