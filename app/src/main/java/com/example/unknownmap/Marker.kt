@@ -5,6 +5,7 @@ import com.google.firebase.firestore.GeoPoint
 import java.io.Serializable
 
 data class Marker(
+    val id: String,
     val name: String,
     val gps: GeoPoint,
     val category: Int,

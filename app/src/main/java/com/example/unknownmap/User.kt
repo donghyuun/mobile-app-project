@@ -14,3 +14,4 @@ class User {
         this.token = token
     }
 }
+

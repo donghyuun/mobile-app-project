@@ -75,18 +75,17 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
     private var currentTagsNum = 0  // 생성된 마커의 개수
     // Marker 생성 함수
-    fun createMarker(name: String?, latitude:Double, longtitude:Double, uri: Uri?, categoryType: Int?, star: Int?) : MapPOIItem {
+    fun createMarker(name: String?, latitude:Double, longtitude:Double, uri: Uri?, categoryType: Int?, star: Int, id: String) : MapPOIItem {
         val point = MapPoint.mapPointWithGeoCoord(latitude, longtitude)
         val marker = MapPOIItem()
         val contentResolver = contentResolver
 
         marker.apply {
             itemName = name
-            tag = currentTagsNum
-            currentTagsNum += 1
+            tag = star//평점, 최초등록자가 남김
             mapPoint = point
             customImageBitmap = uriToBitmap(contentResolver, uri)
-            userObject = star
+            userObject = id//마커의 unique id
         }
         when (categoryType) {
             0 -> {
@@ -202,10 +201,13 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 val category = result.data?.getIntExtra("categoryNum", 0)
                 val imageString = result.data?.getStringExtra("image")
                 val imageUri = Uri.parse(imageString)
-                val star = result.data?.getIntExtra("star", 0)
+                var nullableStar = result.data?.getIntExtra("star", 0)
+                var star = nullableStar ?: 0
+
+                val id = result.data?.getStringExtra("id") ?: ""
 
                 Log.d("kim", "got name : ${name}, got lat :${latitude}, got lon : ${longitude}")
-                mapView.addPOIItem(createMarker(name, latitude!!, longitude!!, imageUri, category, star))
+                mapView.addPOIItem(createMarker(name, latitude!!, longitude!!, imageUri, category, star, id))
             }
         }
         // 장소 등록 버튼 리스너, ***누르면 장소 등록 activity 로 이동***
@@ -227,11 +229,11 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         }
 
         // 경북대학교 마커 생성
-        mapView.addPOIItem(createMarker("경북대학교", 35.8888, 128.6103, null, 0, 0))
+        mapView.addPOIItem(createMarker("경북대학교", 35.8888, 128.6103, null, 0, 0, "testid"))
         // 현위치 모드 설정
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeadingWithoutMapMoving);
         // mapView(지도)의 중심 위치를 경북대학교로 설정
-        mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(35.8888, 128.6103), true);
+        mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(35.8888, 128.6103), true)
 //        mapView.setMapCenterPoint(currentMapPoint, true);
         // 시작 화면 줌 상태
         mapView.setZoomLevel(1, true)
@@ -265,12 +267,13 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                     // imageUri 및 imageString은 Firestore 문서에 포함되어 있지 않으므로 null로 처리
                     val imageUri: Uri? = null
                     val imageString: String? = null
+                    val id: String = document.id//마커 id
 
                     val star: Int = document.getLong("star")?.toInt() ?: 0//추가된 것(점수)
 
                     Log.d("kim", "${document.data}")
                     //---------------------------핵심-----------------------------//
-                    mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category, star))
+                    mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category, star, id))
                 }
                 // DB에 저장된 데이터 모두 불러온 후
                 currentPOIItems = mapView.poiItems
@@ -396,7 +399,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 R.drawable.cigar -> "흡연장"
                 else -> "기타"
             }
-            name.text = poiItem?.itemName   // 해당 마커의 정보 이용 가능
+            name.text = poiItem?.itemName  // 해당 마커의 정보 이용 가능
             image.setImageBitmap(poiItem?.customImageBitmap)
             image.apply {
                 baselineAlignBottom = true
@@ -445,7 +448,8 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         intent.putExtra("show_latitude", poiItem?.mapPoint?.mapPointGeoCoord?.latitude ?: 0.0)
         intent.putExtra("show_longitude", poiItem?.mapPoint?.mapPointGeoCoord?.longitude ?: 0.0)
         intent.putExtra("show_category", getCategoryType(poiItem?.markerType))
-        intent.putExtra("show_star", poiItem?.userObject as Int)
+        intent.putExtra("show_star", poiItem?.tag)//추가된 것(점수
+        intent.putExtra("show_id", poiItem?.userObject.toString())//마커 id
 
         // 이미지를 특정 크기로 조절하고 회전 정보 고려
         val scaledAndRotatedBitmap = rotateBitmap(scaleBitmap(poiItem?.customImageBitmap, 500, 500), getRotationFromExif(poiItem))

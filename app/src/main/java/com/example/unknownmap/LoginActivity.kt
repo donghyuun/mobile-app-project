@@ -11,6 +11,10 @@ import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
 import kotlin.reflect.typeOf
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.firestore
 
 class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,7 +79,38 @@ class LoginActivity : AppCompatActivity() {
                                         "Nickname: ${user.kakaoAccount?.profile?.nickname}, " +
                                         "token: ${token.accessToken}"
                                 )
+                                //----------------------로그인시, DB에 사용자 정보 없으면 로그인한 유저 정보 저장------------------------//
+                                val userInfo = User()
+                                userInfo.id = user.id.toString()
+                                userInfo.email = user.kakaoAccount?.email.toString()
+                                userInfo.token = token.accessToken.toString()
+                                userInfo.nickname = user.kakaoAccount?.profile?.nickname.toString()
 
+                                var firestore : FirebaseFirestore? = null
+                                firestore = FirebaseFirestore.getInstance()
+                                val userDocRef = firestore?.collection("users")?.document(userInfo.id)
+
+                                userDocRef?.get()?.addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        val document = task.result
+                                        if (document != null && document.exists()) {
+                                            // 문서가 이미 존재하므로 여기에 원하는 작업 수행
+                                            Log.d("DB", "user info already exists in DB, skipping addition")
+                                        } else {
+                                            // 문서가 존재하지 않으므로 추가 작업 수행
+                                            userDocRef.set(userInfo)
+                                                .addOnSuccessListener {
+                                                    Log.d("DB", "User info was successfully stored in DB")
+                                                }
+                                                .addOnFailureListener { e ->
+                                                    Log.d("DB", "Error, failed to store user info in DB", e)
+                                                }
+                                        }
+                                    } else {
+                                        Log.e("DB", "Error getting document", task.exception)
+                                    }
+                                }
+                                //----------------------------------------------------------------//
                                 // MainActivity로 이동
                                 startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
                                 finish()
