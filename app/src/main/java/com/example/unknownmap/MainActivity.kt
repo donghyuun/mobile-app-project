@@ -75,19 +75,17 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
     private var currentTagsNum = 0  // 생성된 마커의 개수
     // Marker 생성 함수
-    fun createMarker(name: String?, latitude:Double, longtitude:Double, uri: Uri?, categoryType: Int?, star: Int?, id: String?) : MapPOIItem {
+    fun createMarker(name: String?, latitude:Double, longtitude:Double, uri: Uri?, categoryType: Int?, star: Int, id: String) : MapPOIItem {
         val point = MapPoint.mapPointWithGeoCoord(latitude, longtitude)
         val marker = MapPOIItem()
         val contentResolver = contentResolver
 
         marker.apply {
             itemName = name
-            tag = currentTagsNum
-            currentTagsNum += 1
+            tag = star//평점, 최초등록자가 남김
             mapPoint = point
             customImageBitmap = uriToBitmap(contentResolver, uri)
-            userObject = star
-            itemName = id//마커의 unique id
+            userObject = id//마커의 unique id
         }
         when (categoryType) {
             0 -> {
@@ -203,7 +201,9 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 val category = result.data?.getIntExtra("categoryNum", 0)
                 val imageString = result.data?.getStringExtra("image")
                 val imageUri = Uri.parse(imageString)
-                val star = result.data?.getIntExtra("star", 0)
+                var nullableStar = result.data?.getIntExtra("star", 0)
+                var star = nullableStar ?: 0
+
                 val id = result.data?.getStringExtra("id") ?: ""
 
                 Log.d("kim", "got name : ${name}, got lat :${latitude}, got lon : ${longitude}")
@@ -399,7 +399,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 R.drawable.cigar -> "흡연장"
                 else -> "기타"
             }
-            name.text = poiItem?.itemName   // 해당 마커의 정보 이용 가능
+            name.text = poiItem?.itemName  // 해당 마커의 정보 이용 가능
             image.setImageBitmap(poiItem?.customImageBitmap)
             image.apply {
                 baselineAlignBottom = true
@@ -448,8 +448,8 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         intent.putExtra("show_latitude", poiItem?.mapPoint?.mapPointGeoCoord?.latitude ?: 0.0)
         intent.putExtra("show_longitude", poiItem?.mapPoint?.mapPointGeoCoord?.longitude ?: 0.0)
         intent.putExtra("show_category", getCategoryType(poiItem?.markerType))
-        intent.putExtra("show_star", poiItem?.userObject as Int)
-        intent.putExtra("show_id", poiItem?.itemName)//마커 id
+        intent.putExtra("show_star", poiItem?.tag)//추가된 것(점수
+        intent.putExtra("show_id", poiItem?.userObject.toString())//마커 id
 
         // 이미지를 특정 크기로 조절하고 회전 정보 고려
         val scaledAndRotatedBitmap = rotateBitmap(scaleBitmap(poiItem?.customImageBitmap, 500, 500), getRotationFromExif(poiItem))

@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.unknownmap.databinding.ActivityShowPlaceBinding
@@ -84,18 +85,24 @@ class ShowPlaceActivity : AppCompatActivity() {
                         docRef.update("reviewList", existingReviewList)
                             .addOnSuccessListener {
                                 Log.d("DB", "reviewList successfully updated in existing document!")
+                                binding.commentEditText.text.clear()
+                                Toast.makeText(this, "리뷰가 등록되었습니다.", Toast.LENGTH_SHORT).show()
                             }
                             .addOnFailureListener { e ->
                                 Log.d("DB", "Fail, can not updated exsisting reviewList", e)
+                                Toast.makeText(this, "Error, 리뷰가 등록되지 않았습니다.", Toast.LENGTH_SHORT).show()
                             }
                     } else{
                         //기존 문서가 존재하지 않는 경우, 새 문서 생성
                         docRef.set(review)
                             .addOnSuccessListener {
                                 Log.d("DB", "new reviewList successfully created!")
+                                Toast.makeText(this, "리뷰가 등록되었습니다.", Toast.LENGTH_SHORT).show()
                             }
                             .addOnFailureListener { e ->
                                 Log.w("DB", "Fail, can not create new reviewList", e)
+                                Toast.makeText(this, "Error, 리뷰가 등록되지 않았습니다.", Toast.LENGTH_SHORT).show()
+
                             }
                     }
                 }
