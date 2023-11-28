@@ -24,6 +24,8 @@ import net.daum.mf.map.api.MapReverseGeoCoder
 import net.daum.mf.map.api.MapView
 import okhttp3.Address
 import java.net.URI
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.util.Collections
 import java.util.UUID
 
@@ -32,7 +34,7 @@ class SetPlaceActivity : AppCompatActivity() {
     var isSet: Boolean = false
 
     // firestore 설정
-    var firestore : FirebaseFirestore? = null
+    var firestore: FirebaseFirestore? = null
 
     // 사진 업로드를 위한 Activity에서 결과 가져오기
     private lateinit var resultLauncher: ActivityResultLauncher<Intent>
@@ -59,7 +61,8 @@ class SetPlaceActivity : AppCompatActivity() {
         }
 
         var addr = ""
-        MapReverseGeoCoder("", MapPoint.mapPointWithGeoCoord(latitude, longitude),
+        MapReverseGeoCoder(
+            KeyStore.getNativeAppKey(), MapPoint.mapPointWithGeoCoord(latitude, longitude),
             object : MapReverseGeoCoder.ReverseGeoCodingResultListener {
                 override fun onReverseGeoCoderFoundAddress(
                     p0: MapReverseGeoCoder?,
@@ -260,49 +263,71 @@ class SetPlaceActivity : AppCompatActivity() {
 
         // 등록 버튼 리스너 ***Marker 클래스에 넣을 값들을 intent로 MainActivity로 넘겨줌***
         binding.setPlaceSetBtn.setOnClickListener {
-            val name = binding.placeName.text.toString()
-            val uniqueId = UUID.randomUUID().toString()//랜덤한 아이디(키값) 생성, DB저장용, but MainActivity에서도 사용해야 하므로 intent로 넘겨줌
+            val currentTime = System.currentTimeMillis()
+            var lastSetTime = intent.getLongExtra("last_set_time", 0)
+            // 마지막 등록 시간의 기본 값(없을 때)은 현재 시간
+            if (lastSetTime == 0.toLong()) {
+                lastSetTime = currentTime
+            }
 
-            intent.putExtra("set_latitude", latitude)
-            intent.putExtra("set_longitude", longitude)
-            intent.putExtra("set_name", name)
+            val leftTime = currentTime - lastSetTime
+            // 밀리초 단위
+            val limitTime = 60000
+            // 마지막 등록 시간으로부터 지난 시간이 1분 이하면 등록 안 됨 (수정 가능)
+            if (leftTime in 1..limitTime) {
+                val sec = (leftTime) / 1000
+                Toast.makeText(this, "${limitTime / 1000 - sec}초 후에 등록이 가능해요.", Toast.LENGTH_SHORT).show()
+            }
+            else {
+                val name = binding.placeName.text.toString()
+                val uniqueId = UUID.randomUUID()
+                    .toString()//랜덤한 아이디(키값) 생성, DB저장용, but MainActivity에서도 사용해야 하므로 intent로 넘겨줌
 
-            intent.putExtra("isSet", true)
-            intent.putExtra("categoryNum", currentSelectedNum)
-            intent.putExtra("image", uri.toString())
-            intent.putExtra("star", currentScore)
-            intent.putExtra("id", uniqueId)
-            // uri는 String으로 변환해서 intent로 넘기고, 받을 때 다시 parse 해야 함
+                // 등록 시간
+                intent.putExtra("last_set_time", System.currentTimeMillis())
 
-            setResult(RESULT_OK, intent)
+                intent.putExtra("set_latitude", latitude)
+                intent.putExtra("set_longitude", longitude)
+                intent.putExtra("set_name", name)
 
-            // FireStore 에 저장
-            val marker = Marker(
-                id = uniqueId,
-                name = name,
-                gps = GeoPoint(latitude, longitude),
-                category = currentSelectedNum,
-                imageString = uri.toString(),
-                imageUri = uri,
-                star = currentScore
-            )
+                intent.putExtra("isSet", true)
+                intent.putExtra("categoryNum", currentSelectedNum)
+                intent.putExtra("image", uri.toString())
+                intent.putExtra("star", currentScore)
+                intent.putExtra("id", uniqueId)
+                // uri는 String으로 변환해서 intent로 넘기고, 받을 때 다시 parse 해야 함
 
-            //Firebase에 저장
-            firestore?.collection("sampleMarker")
-                ?.document(marker.id)
-                ?.set(marker)
-                ?.addOnSuccessListener {
-                    finish()
-                }
-                ?.addOnFailureListener {e ->
-                    Log.e("kim", "Error Marker Written: ${e.message}", e)
-                }
+                setResult(RESULT_OK, intent)
 
-            Log.d(
-                "kim",
-                "$latitude, $longitude, $name, $currentSelectedNum transferred to MainActivity"
-            )
-            finish()//스택에 쌓인 직전 엑티비티(=MainActivity)로 이동
+                // FireStore 에 저장
+                val marker = Marker(
+                    id = uniqueId,
+                    name = name,
+                    gps = GeoPoint(latitude, longitude),
+                    category = currentSelectedNum,
+                    imageString = uri.toString(),
+                    imageUri = uri,
+                    star = currentScore
+                )
+
+                //Firebase에 저장
+                firestore?.collection("sampleMarker")
+                    ?.document(marker.id)
+                    ?.set(marker)
+                    ?.addOnSuccessListener {
+                        finish()
+                    }
+                    ?.addOnFailureListener { e ->
+                        Log.e("kim", "Error Marker Written: ${e.message}", e)
+                    }
+
+                Log.d(
+                    "kim",
+                    "$latitude, $longitude, $name, $currentSelectedNum transferred to MainActivity"
+                )
+
+                finish()//스택에 쌓인 직전 엑티비티(=MainActivity)로 이동
+            }
         }
 
         setContentView(binding.root)
