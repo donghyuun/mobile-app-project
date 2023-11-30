@@ -64,17 +64,18 @@ class LoginActivity : AppCompatActivity() {
                             if (error != null) {
                                 Log.e("LOGIN", "사용자 정보 요청 실패", error)
                             } else if (user != null) {
-                                val intent = Intent(this, MainActivity::class.java)
-                                intent.putExtra("userId", user.id)
-                                intent.putExtra("userEmail", user.kakaoAccount?.email)
-                                intent.putExtra("userNickname", user.kakaoAccount?.profile?.nickname)
-                                intent.putExtra("userToken", token.accessToken)
-                                Log.d("LOGIN", "In LoginActivity, " +
-                                        "User ID: ${user.id}, " +
-                                        "Email: ${user.kakaoAccount?.email}, " +
-                                        "Nickname: ${user.kakaoAccount?.profile?.nickname}, " +
-                                        "token: ${token.accessToken}"
-                                )
+//                                val intent = Intent(this, MainActivity::class.java)
+//                                intent.putExtra("userId", user.id)
+//                                intent.putExtra("userEmail", user.kakaoAccount?.email)
+//                                intent.putExtra("userNickname", user.kakaoAccount?.profile?.nickname)
+//                                intent.putExtra("userToken", token.accessToken)
+//                                Log.d("LOGIN", "In LoginActivity, " +
+//                                        "User ID: ${user.id}, " +
+//                                        "Email: ${user.kakaoAccount?.email}, " +
+//                                        "Nickname: ${user.kakaoAccount?.profile?.nickname}, " +
+//                                        "token: ${token.accessToken}"
+//                                )
+                                Log.d("LOGIN", "TEST")
 
                                 // MainActivity로 이동
                                 startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))

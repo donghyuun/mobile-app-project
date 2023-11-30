@@ -114,6 +114,15 @@
 
     </LinearLayout>
 
+    <!--(임시) 댓글을 스크롤로 볼 수 있는 RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/commentsRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="16dp"
+        android:scrollbars="vertical"/>
+
     <!-- 댓글을 입력할 EditText -->
     <EditText
         android:id="@+id/commentEditText"

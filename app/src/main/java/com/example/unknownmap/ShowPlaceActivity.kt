@@ -1,17 +1,21 @@
 package com.example.unknownmap
 
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.unknownmap.databinding.ActivityShowPlaceBinding
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.firestore.toObject
 import net.daum.mf.map.api.MapPOIItem
+import java.util.Date
 
 class ShowPlaceActivity : AppCompatActivity() {
 
@@ -28,6 +32,7 @@ class ShowPlaceActivity : AppCompatActivity() {
         val category = intent.getIntExtra("show_category", 0)
         val byteArray = intent.getByteArrayExtra("show_image")
         val star = intent.getIntExtra("show_star", 0)
+        val id = intent.getStringExtra("show_id") ?: ""
         Log.d("star", star.toString())
         val imageBitmap = if (byteArray != null) {
             // 바이트 배열을 Bitmap으로 변환
@@ -59,7 +64,50 @@ class ShowPlaceActivity : AppCompatActivity() {
                 binding.heartButton.setImageResource(R.drawable.blank_heart)
             }
         }
-        
+        //리뷰 등록 버튼
+        binding.submitCommentButton.setOnClickListener {
+            //입력창 내용 가져오기
+            val content = binding.commentEditText.text.toString()
+            val review = Review()
+            review.markerId = id
+            review.addReview(MainActivity.staticUserId.toString(), MainActivity.staticUserNickname, content, Date())
+            //리뷰 등록
+            val db = FirebaseFirestore.getInstance()
+            val docRef = db.collection("reviews").document(id)
+            docRef.get()
+                .addOnSuccessListener { document: DocumentSnapshot ->
+                    if(document != null && document.exists()){
+                        //기존에 문서가 존재하는 경우, 기존의 reviewList 가져옴
+                        val existingReviewList = document.data?.get("reviewList") as MutableList<KeyValueElement>
+                        //새 리뷰를 기존 reviewList에 추가
+                        existingReviewList.addAll(review.reviewList)
+                        //firebase 문서 업데이트
+                        docRef.update("reviewList", existingReviewList)
+                            .addOnSuccessListener {
+                                Log.d("DB", "reviewList successfully updated in existing document!")
+                                binding.commentEditText.text.clear()
+                                Toast.makeText(this, "리뷰가 등록되었습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                            .addOnFailureListener { e ->
+                                Log.d("DB", "Fail, can not updated exsisting reviewList", e)
+                                Toast.makeText(this, "Error, 리뷰가 등록되지 않았습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                    } else{
+                        //기존 문서가 존재하지 않는 경우, 새 문서 생성
+                        docRef.set(review)
+                            .addOnSuccessListener {
+                                Log.d("DB", "new reviewList successfully created!")
+                                Toast.makeText(this, "리뷰가 등록되었습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                            .addOnFailureListener { e ->
+                                Log.w("DB", "Fail, can not create new reviewList", e)
+                                Toast.makeText(this, "Error, 리뷰가 등록되지 않았습니다.", Toast.LENGTH_SHORT).show()
+
+                            }
+                    }
+                }
+        }
+
         if(star == 0){
             binding.starScore1.setImageResource(R.drawable.star_dark)
             binding.starScore2.setImageResource(R.drawable.star_dark)
