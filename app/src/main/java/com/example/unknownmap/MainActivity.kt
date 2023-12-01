@@ -31,6 +31,7 @@ import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.firestore
 import com.kakao.sdk.user.UserApiClient
 import net.daum.mf.map.api.CalloutBalloonAdapter
+import net.daum.mf.map.api.CameraUpdate
 import net.daum.mf.map.api.MapPOIItem
 import net.daum.mf.map.api.MapPoint
 import net.daum.mf.map.api.MapView
@@ -244,16 +245,13 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         // 현위치 마커 표시
         mapView.setShowCurrentLocationMarker(true)
 
+        mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithMarkerHeadingWithoutMapMoving)
+
+        // 주기적으로 현재 위치를 받아오는 Listener
+        mapView.setCurrentLocationEventListener(this@MainActivity)
+
         binding.myLocationBtn.setOnClickListener {
-            // 현재 위치 추적 모드로 변경
-            if (mapView.currentLocationTrackingMode == CurrentLocationTrackingMode.TrackingModeOnWithoutHeadingWithoutMapMoving) {
-                Toast.makeText(this@MainActivity, "현재 위치로 고정하여 표시합니다.", Toast.LENGTH_SHORT).show()
-                mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeading);
-            // 해제
-            } else if (mapView.currentLocationTrackingMode == CurrentLocationTrackingMode.TrackingModeOnWithoutHeading) {
-                Toast.makeText(this@MainActivity, "현재 위치 고정을 해제합니다.", Toast.LENGTH_SHORT).show()
-                mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeadingWithoutMapMoving)
-            }
+            mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(currentMapPoint.mapPointGeoCoord.latitude,  currentMapPoint.mapPointGeoCoord.longitude), true)
         }
 
         // 현재 모든 POIItems 담는 배열
@@ -429,7 +427,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         if (p1 != null) {
             currentMapPoint = p1
         }
-        Log.d("kim", "current map point : " + p1.toString())
+        Log.d("ijh", "current map point : " + p1.toString())
     }
     override fun onCurrentLocationDeviceHeadingUpdate(p0: MapView?, p1: Float) { }
     override fun onCurrentLocationUpdateFailed(p0: MapView?) { }
