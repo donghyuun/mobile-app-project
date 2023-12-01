@@ -118,7 +118,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/commentsRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="100dp"
         android:padding="16dp"
         android:scrollbars="vertical"/>
 
@@ -127,7 +127,7 @@
         android:id="@+id/commentEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="50dp"
+        android:layout_margin="20dp"
         android:hint="후기를 남겨보세요"/>
 
     <!-- 댓글을 제출할 Button -->
