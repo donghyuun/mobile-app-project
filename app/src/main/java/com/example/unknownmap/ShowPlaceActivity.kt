@@ -189,6 +189,8 @@ class ShowPlaceActivity : AppCompatActivity() {
                     Log.d("review", "G: ${reviewList.toString()}")
                     Log.d("review", "G: ${reviewList.size.toString()}")
                     binding.commentsRecyclerView.adapter = MyAdapter(reviewList)
+                    Log.d("review", "H")
+
                 } else{
                     Log.d("DB", "review list does not exist")
                 }

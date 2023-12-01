@@ -10,7 +10,7 @@
     <TextView
         android:id="@+id/comment_user_id"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="20dp"
         android:layout_weight="1"
         android:textSize="16dp"
         android:textStyle="bold" />
@@ -18,7 +18,7 @@
     <TextView
         android:id="@+id/comment_content"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="20dp"
         android:layout_weight="1"
         android:textSize="16dp"
         android:textStyle="bold" />
