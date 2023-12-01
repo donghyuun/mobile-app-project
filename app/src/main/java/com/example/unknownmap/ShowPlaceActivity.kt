@@ -4,14 +4,22 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.unknownmap.databinding.ActivityShowPlaceBinding
+import com.example.unknownmap.databinding.CommentItemBinding
+import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.firestore.toObject
 import net.daum.mf.map.api.MapPOIItem
@@ -159,6 +167,39 @@ class ShowPlaceActivity : AppCompatActivity() {
         locationTextView.text = "위도: $latitude\n경도: $longitude"
         categoryTextView.text = getCategoryString(category)
         imageView.setImageBitmap(imageBitmap)
+
+
+        //리뷰 가져와서 저장하기 위한 변수
+        // firestore 데이터를 가져오기 위한 객체
+        val db = FirebaseFirestore.getInstance()
+        var reviewList = mutableListOf<KeyValueElement>()
+        db.collection("reviews").document(id).get()
+            .addOnSuccessListener { document ->
+                if(document != null && document.exists() && document.data?.get("markerId") == id){
+                    reviewList = document.data?.get("reviewList") as MutableList<KeyValueElement>
+                    Log.d("DB", "review list exists")
+                    Log.d("DB", reviewList.toString())
+                    Log.d("DB", reviewList.size.toString())
+
+                    //여기서 리사이클러뷰에 리뷰 목록을 출력하도록 해야함, 안그러면 DB에서 리뷰 목록 받아오는 것보다 더 빨리 실행되서 리뷰가 정상적으로 출력되지 않음
+                    val layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL)//한줄에 항목을 몇개 배치할지
+                    Log.d("review", "E")
+                    binding.commentsRecyclerView.layoutManager = layoutManager
+                    Log.d("review", "F")
+                    Log.d("review", "G: ${reviewList.toString()}")
+                    Log.d("review", "G: ${reviewList.size.toString()}")
+                    binding.commentsRecyclerView.adapter = MyAdapter(reviewList)
+                    Log.d("review", "H")
+
+                } else{
+                    Log.d("DB", "review list does not exist")
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.d("DB", "get failed with ", exception)
+            }
+
+        Log.d("DB","adfasdfadsfaf")
     }
 
     private fun getCategoryString(category: Int): String {

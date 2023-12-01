@@ -84,9 +84,13 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         }
     }
 
+    private var lastSetTime : Long? = 0 // 마지막 등록 시간
     private var currentTagsNum = 0  // 생성된 마커의 개수
+
     // Marker 생성 함수
+
     fun createMarker(name: String?, latitude:Double, longtitude:Double, imageUriString: String?, categoryType: Int?, star: Int, id: String) : MapPOIItem {
+
         val point = MapPoint.mapPointWithGeoCoord(latitude, longtitude)
         val marker = MapPOIItem()
         val contentResolver = contentResolver
@@ -95,9 +99,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             itemName = name
             tag = star//평점, 최초등록자가 남김
             mapPoint = point
-//            customImageBitmap = uriToBitmap(contentResolver, Uri.parse(imageUriString))
             customImageBitmap = imageUriString?.let { uriToBitmap(contentResolver, Uri.parse(it)) }
-//            userObject = id//마커의 unique id
             userObject = UserObjectData(
                 id = id,
                 imageUrl = imageUriString ?: ""
@@ -209,6 +211,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
                 Log.d("kim", "got name : ${name}, got lat :${latitude}, got lon : ${longitude}")
                 mapView.addPOIItem(createMarker(name, latitude!!, longitude!!, imageString, category, star, id))
+                lastSetTime = result.data?.getLongExtra("last_set_time", 0)
             }
         }
         // 장소 등록 버튼 리스너, ***누르면 장소 등록 activity 로 이동***
@@ -224,14 +227,17 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             // 화면 중심 위치의 위도, 경도 SetPlaceActivity에 전달
             intent.putExtra("create_latitude", latitude)
             intent.putExtra("create_longitude", longitude)
+            intent.putExtra("last_set_time", lastSetTime)
 
             resultLauncher.launch(intent)
             Log.d("kim", "${latitude}, ${longitude} transferred to setPlaceActivity")
         }
 
         // 경북대학교 마커 생성
+
         Log.d("kim", "KNU START")
-        mapView.addPOIItem(createMarker("경북대학교", 35.8888, 128.6103, null, 0, 0, "testid"))
+
+        // mapView.addPOIItem(createMarker("경북대학교", 35.8888, 128.6103, null, 0, 0, "testid"))
         // 현위치 모드 설정
         Log.d("kim", "KNU END")
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeadingWithoutMapMoving);
@@ -268,14 +274,17 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                     val longitude = (document["gps"] as GeoPoint).longitude
                     val category = document.getLong("category")?.toInt() ?: 0
                     // imageUri 및 imageString은 Firestore 문서에 포함되어 있지 않으므로 null로 처리
+
                     val imageString = document.getString("imageUri") ?: ""
                     val imageUri = Uri.parse(imageString)
+
                     val id: String = document.id//마커 id
 
                     val star: Int = document.getLong("star")?.toInt() ?: 0//추가된 것(점수)
 
                     Log.d("kim", "${document.data}")
                     //---------------------------핵심-----------------------------//
+
                     mapView.addPOIItem(createMarker(name, latitude, longitude, imageString, category, star, id))
                 }
                 // DB에 저장된 데이터 모두 불러온 후
@@ -424,6 +433,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             }
             name.text = poiItem?.itemName  // 해당 마커의 정보 이용 가능
 
+
 //            image.setImageBitmap(poiItem?.customImageBitmap)
 
             val userObjectData = poiItem?.userObject as? UserObjectData
@@ -505,6 +515,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         intent.putExtra("show_latitude", poiItem?.mapPoint?.mapPointGeoCoord?.latitude ?: 0.0)
         intent.putExtra("show_longitude", poiItem?.mapPoint?.mapPointGeoCoord?.longitude ?: 0.0)
         intent.putExtra("show_category", getCategoryType(poiItem?.markerType))
+
         intent.putExtra("show_star", poiItem?.tag)//추가된 것(점수)
         val userObjectData = poiItem?.userObject as? UserObjectData
         val showId = userObjectData?.id ?: ""
