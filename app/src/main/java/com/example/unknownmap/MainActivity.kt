@@ -73,7 +73,9 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         }
     }
 
+    private var lastSetTime : Long? = 0 // 마지막 등록 시간
     private var currentTagsNum = 0  // 생성된 마커의 개수
+
     // Marker 생성 함수
     fun createMarker(name: String?, latitude:Double, longtitude:Double, uri: Uri?, categoryType: Int?, star: Int, id: String) : MapPOIItem {
         val point = MapPoint.mapPointWithGeoCoord(latitude, longtitude)
@@ -205,6 +207,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 var star = nullableStar ?: 0
 
                 val id = result.data?.getStringExtra("id") ?: ""
+                lastSetTime = result.data?.getLongExtra("last_set_time", 0)
 
                 Log.d("kim", "got name : ${name}, got lat :${latitude}, got lon : ${longitude}")
                 mapView.addPOIItem(createMarker(name, latitude!!, longitude!!, imageUri, category, star, id))
@@ -223,6 +226,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             // 화면 중심 위치의 위도, 경도 SetPlaceActivity에 전달
             intent.putExtra("create_latitude", latitude)
             intent.putExtra("create_longitude", longitude)
+            intent.putExtra("last_set_time", lastSetTime)
 
             resultLauncher.launch(intent)
             Log.d("kim", "${latitude}, ${longitude} transferred to setPlaceActivity")
