@@ -8,13 +8,13 @@ data class KeyValueElement(
     val content: String,
     val createdDate: Date
 ) {
-    operator fun get(s: String): Any {
+    operator fun get(s: String): String {
         return when (s) {
             "userId" -> userId
             "userNickName" -> userNickName
             "content" -> content
-            "createdDate" -> createdDate
-            else -> "DefaultContent"
+            "createdDate" -> createdDate.toString()
+            else -> ""
         }
     }
 }
