@@ -72,7 +72,7 @@ class ShowPlaceActivity : AppCompatActivity() {
                 binding.heartButton.setImageResource(R.drawable.blank_heart)
             }
         }
-        //리뷰 등록 버튼
+        //*********************리뷰 등록 버튼*********************//
         binding.submitCommentButton.setOnClickListener {
             //입력창 내용 가져오기
             val content = binding.commentEditText.text.toString()
@@ -169,7 +169,7 @@ class ShowPlaceActivity : AppCompatActivity() {
         imageView.setImageBitmap(imageBitmap)
 
 
-        //리뷰 가져와서 저장하기 위한 변수
+        //********************리뷰 가져와서 저장하기 위한 변수********************//
         // firestore 데이터를 가져오기 위한 객체
         val db = FirebaseFirestore.getInstance()
         var reviewList = mutableListOf<KeyValueElement>()

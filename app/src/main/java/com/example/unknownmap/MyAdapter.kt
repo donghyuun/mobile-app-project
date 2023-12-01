@@ -27,19 +27,25 @@
             Log.d("review", "MyAdapter: onBindViewHolder typeof reviewList[position]: ${reviewList[position]::class.java}")
 
             data class ReviewData(
+                val content: String? = null,
                 val createdDate: com.google.firebase.Timestamp? = null,
                 val userNickName: String? = null,
-                val userId: String? = null,
-                val content: String? = null
+                val userId: String? = null
             )
 
             try {
                 if (reviewList != null && position >= 0 && position < reviewList.size) {
+                    //reviewList[Position]이 애초에 DB로부터 HashMap 형태(KeyValueElement 타입 X!!)로 가져와졌기 때문에 해시맵을 이용해야 한다.
+                    //따라서 내가 임의로 만든 KeyValueElement 타입의 객체에 reviewList[position]을 대입할 수 없다.
                     val dataFromFirestore: HashMap<String, Any> = reviewList[position] as HashMap<String, Any>
+                    Log.d("review", "MyAdapter: typeof reviewList: ${reviewList::class.java}")
                     for ((key, value) in dataFromFirestore) {
                         Log.d("review","Key: $key, Value: $value")
                     }
                     val reviewData = ReviewData(
+                        //저장할때는 KeyValueElement 타입이었지만, 가져올때는 HashMap 타입이다.
+
+                        //저장할때는 Timestamp 타입이었지만, 가져올때는 com.google.firebase.Timestamp 타입이다.
                         createdDate = dataFromFirestore["createdDate"] as? com.google.firebase.Timestamp,
                         userNickName = dataFromFirestore["userNickName"] as String?,
                         userId = dataFromFirestore["userId"] as String?,
@@ -60,3 +66,4 @@
 
         }
     }
+
