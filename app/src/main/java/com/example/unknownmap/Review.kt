@@ -7,7 +7,17 @@ data class KeyValueElement(
     val userNickName: String,
     val content: String,
     val createdDate: Date
-)
+) {
+    operator fun get(s: String): Any {
+        return when (s) {
+            "userId" -> userId
+            "userNickName" -> userNickName
+            "content" -> content
+            "createdDate" -> createdDate
+            else -> "DefaultContent"
+        }
+    }
+}
 
 data class Review(
     var markerId: String = "",
