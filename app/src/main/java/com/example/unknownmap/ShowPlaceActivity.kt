@@ -183,23 +183,19 @@ class ShowPlaceActivity : AppCompatActivity() {
 
                     //여기서 리사이클러뷰에 리뷰 목록을 출력하도록 해야함, 안그러면 DB에서 리뷰 목록 받아오는 것보다 더 빨리 실행되서 리뷰가 정상적으로 출력되지 않음
                     val layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL)//한줄에 항목을 몇개 배치할지
-                    Log.d("review", "E")
                     binding.commentsRecyclerView.layoutManager = layoutManager
-                    Log.d("review", "F")
-                    Log.d("review", "G: ${reviewList.toString()}")
-                    Log.d("review", "G: ${reviewList.size.toString()}")
+                    Log.d("review", "ShowPlaceActivity: reviewList.toString: ${reviewList.toString()}")
+                    Log.d("review", "ShowPlaceActivity: reviewList.size.toString: ${reviewList.size.toString()}")
                     binding.commentsRecyclerView.adapter = MyAdapter(reviewList)
-                    Log.d("review", "H")
-
                 } else{
-                    Log.d("DB", "review list does not exist")
+                    Log.d("review", "ShowPlaceActivity: review list does not exist")
                 }
             }
             .addOnFailureListener { exception ->
-                Log.d("DB", "get failed with ", exception)
+                Log.d("review", "ShowPlaceActivity: get failed with ", exception)
             }
 
-        Log.d("DB","adfasdfadsfaf")
+        Log.d("review","adfasdfadsfaf")
     }
 
     private fun getCategoryString(category: Int): String {
