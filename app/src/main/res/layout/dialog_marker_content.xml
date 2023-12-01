@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/dialogTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="마커 내용 입력"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingBottom="20dp" />
+
+    <EditText
+        android:id="@+id/markerContentEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="마커에 입력할 내용을 입력하세요"
+        android:inputType="text"
+        android:padding="10dp" />
+</LinearLayout>

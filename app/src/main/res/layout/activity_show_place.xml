@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:background="@color/white">
+    >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- 즐겨찾기 버튼 -->
+        <ImageView
+            android:id="@+id/heartButton"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="6dp"
+            android:src="@drawable/blank_heart"/>
+
+
+        <!-- 닫기 버튼 -->
+        <ImageView
+            android:id="@+id/closeButton"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="6dp"
+            android:src="@drawable/red_close_button"/>
+
+    </RelativeLayout>
+
+
+    <TextView
+        android:id="@+id/show_name_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:layout_marginTop="16dp"
+        android:textColor="#727272"
+        android:layout_centerHorizontal="true"/>
+
+    <TextView
+        android:id="@+id/show_location_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColor="#727272"
+        android:layout_below="@id/show_name_textView"
+        android:layout_marginTop="8dp"
+        android:layout_centerHorizontal="true"/>
+
+    <TextView
+        android:id="@+id/show_category_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColor="#727272"
+        android:layout_below="@id/show_location_textView"
+        android:layout_marginTop="8dp"
+        android:layout_centerHorizontal="true"/>
+
+    <ImageView
+        android:id="@+id/show_imageView"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_below="@id/show_category_textView"
+        android:layout_marginTop="16dp"
+        android:layout_centerHorizontal="true"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:layout_marginTop="5dp">
+
+
+        <ImageView
+            android:id="@+id/star_score1"
+            android:layout_marginHorizontal="1dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/star_light"/>
+        <ImageView
+            android:id="@+id/star_score2"
+            android:layout_marginHorizontal="1dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/star_light"/>
+        <ImageView
+            android:id="@+id/star_score3"
+            android:layout_marginHorizontal="1dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/star_light"/>
+
+        <ImageView
+            android:id="@+id/star_score4"
+            android:layout_marginHorizontal="1dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/star_light"/>
+        <ImageView
+            android:id="@+id/star_score5"
+            android:layout_marginHorizontal="1dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/star_light"/>
+
+    </LinearLayout>
+
+    <!--(임시) 댓글을 스크롤로 볼 수 있는 RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/commentsRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="16dp"
+        android:scrollbars="vertical"/>
+
+    <!-- 댓글을 입력할 EditText -->
+    <EditText
+        android:id="@+id/commentEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="50dp"
+        android:hint="후기를 남겨보세요"/>
+
+    <!-- 댓글을 제출할 Button -->
+    <Button
+        android:id="@+id/submitCommentButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="제출"/>
+    <Button
+        android:id="@+id/remove_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="삭제하기"
+      />
+
+</LinearLayout>

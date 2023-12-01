@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@android:color/white"
+    tools:context=".MainActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- 닫기 버튼 -->
+        <ImageView
+            android:id="@+id/closeButton"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="6dp"
+            android:src="@drawable/red_close_button"/>
+
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/myPageUserId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="User ID"
+        android:textSize="18sp"
+        android:textColor="#000000"
+        android:padding="8dp"
+        android:background="?android:attr/selectableItemBackground"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#D3D3D3"/>
+
+    <TextView
+        android:id="@+id/myPageUserEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="User Email"
+        android:textSize="18sp"
+        android:textColor="#000000"
+        android:padding="8dp"
+        android:background="?android:attr/selectableItemBackground"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#D3D3D3"/>
+
+    <TextView
+        android:id="@+id/myPageUserNickname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="User Nickname"
+        android:textSize="18sp"
+        android:textColor="#000000"
+        android:padding="8dp"
+        android:background="?android:attr/selectableItemBackground"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#D3D3D3"/>
+
+    <TextView
+        android:id="@+id/myPageUserToken"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="User Token"
+        android:textSize="18sp"
+        android:textColor="#000000"
+        android:padding="8dp"
+        android:background="?android:attr/selectableItemBackground"/>
+
+    <Button
+        android:id="@+id/logoutBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:elevation="4dp"
+        android:layout_marginTop="12dp"
+        android:text="로그아웃"
+        android:textSize="17dp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:id="@+id/main_menu"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/corner_round"
+        android:backgroundTint="@color/white"
+        android:elevation="4dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/main_home_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/transparent"
+            android:paddingHorizontal="25dp"
+            android:src="@drawable/home_page" />
+
+        <ImageButton
+            android:id="@+id/main_star_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/transparent"
+            android:paddingHorizontal="25dp"
+            android:src="@drawable/star_page" />
+
+        <ImageButton
+            android:id="@+id/main_mypage_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/transparent"
+            android:paddingHorizontal="25dp"
+            android:src="@drawable/my_page" />
+    </LinearLayout>
+</LinearLayout>
