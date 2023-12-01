@@ -233,7 +233,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         }
 
         // 경북대학교 마커 생성
-        mapView.addPOIItem(createMarker("경북대학교", 35.8888, 128.6103, null, 0, 0, "testid"))
+        // mapView.addPOIItem(createMarker("경북대학교", 35.8888, 128.6103, null, 0, 0, "testid"))
         // 현위치 모드 설정
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOnWithoutHeadingWithoutMapMoving);
         // mapView(지도)의 중심 위치를 경북대학교로 설정
