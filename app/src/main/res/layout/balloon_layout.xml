@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/ball_view"
+    android:layout_width="wrap_content"
+    android:layout_height="200dp"
+    android:layout_margin="4dp"
+    app:cardCornerRadius="8dp">
+
+    <LinearLayout
+        android:layout_width="180dp"
+        android:layout_height="130dp"
+        android:layout_margin="10dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/ball_category"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="카테고리"
+                android:textSize="12sp"
+                android:layout_marginRight="5dp"/>
+            <TextView
+                android:id="@+id/ball_tv_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="장소명"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="12sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/ball_tv_address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="주소"
+            android:textSize="10sp"
+            app:layout_constraintStart_toStartOf="@+id/ball_tv_name"
+            app:layout_constraintTop_toBottomOf="@+id/ball_tv_name" />
+
+        <ImageView
+            android:id="@+id/ball_show_image"
+            android:layout_width="140dp"
+            android:layout_height="95dp"
+            android:layout_gravity="center"
+            android:scaleType="centerCrop"/>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
