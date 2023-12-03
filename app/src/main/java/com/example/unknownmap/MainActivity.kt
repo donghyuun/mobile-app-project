@@ -10,6 +10,8 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -53,6 +55,9 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
     // 현재 MapPoint 위치
     lateinit var currentMapPoint : MapPoint
+
+    // 현재 모든 POIItems 담는 배열
+    lateinit var currentPOIItems: Array<MapPOIItem>
 
     // firestore 데이터를 가져오기 위한 객체
     var firestore : FirebaseFirestore? = null
@@ -192,11 +197,35 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             override fun onMapViewMoveFinished(p0: MapView?, p1: MapPoint?) {}
         })
 
-        // SetPlaceActivity 로부터 결과를 받아오는 코드 ***등록할 좌표 정보, 이름, 카테고리 등을 받아와서 mapView에 좌표로 등록***
+        // DB에 저장된 데이터 불러오기
+        fun loadDB() {
+            db.collection("sampleMarker")
+                .get()
+                .addOnSuccessListener { result ->
+                    for (document in result) {
+                        val name = document.getString("name") ?: ""
+                        val latitude = (document["gps"] as GeoPoint).latitude
+                        val longitude = (document["gps"] as GeoPoint).longitude
+                        val category = document.getLong("category")?.toInt() ?: 0
+                        val imageUri: Uri? = null
+                        val imageString: String? = null
+                        val id: String = document.id
+                        val star: Int = document.getLong("star")?.toInt() ?: 0
+                        mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category, star, id))
+                    }
+                    currentPOIItems = mapView.poiItems
+                    // Now you have the most up-to-date list of items
+                }
+                .addOnFailureListener { exception ->
+                    Log.w("kim", "Error getting documents.", exception)
+                }
+        }
+
+        // 다른 액티비티로부터 결과를 받아오는 코드 ***등록할 좌표 정보, 이름, 카테고리 등을 받아와서 mapView에 좌표로 등록***
         resultLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()){ result ->
-            // 서브 액티비티로부터 돌아올 때의 결과 값을 받아 올 수 있는 구문
-            if (result.resultCode == RESULT_OK){
+            // SetPlaceActivity에서 등록 성공하여 돌아온다면
+            if (result.resultCode == RESULT_OK) {
 
                 val name = result.data?.getStringExtra("set_name") ?: ""
                 val latitude = result.data?.getDoubleExtra("set_latitude", 0.0)
@@ -213,7 +242,14 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 Log.d("kim", "got name : ${name}, got lat :${latitude}, got lon : ${longitude}")
                 mapView.addPOIItem(createMarker(name, latitude!!, longitude!!, imageUri, category, star, id))
             }
+            // ShowPlaceActivity에서 돌아온다면
+            else if (result.resultCode == 11) {
+                // 지도 새로고침
+                mapView.removeAllPOIItems()
+                loadDB()
+            }
         }
+
         // 장소 등록 버튼 리스너, ***누르면 장소 등록 activity 로 이동***
         var addr = ""
         binding.btnSetPlace.setOnClickListener{
@@ -254,35 +290,8 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(currentMapPoint.mapPointGeoCoord.latitude,  currentMapPoint.mapPointGeoCoord.longitude), true)
         }
 
-        // 현재 모든 POIItems 담는 배열
-        lateinit var currentPOIItems: Array<MapPOIItem>
-
-        // DB에 저장된 데이터 불러오기
-        db.collection("sampleMarker")
-            .get()
-            .addOnSuccessListener { result ->
-                for (document in result) {
-                    val name = document.getString("name") ?: ""
-                    val latitude = (document["gps"] as GeoPoint).latitude
-                    val longitude = (document["gps"] as GeoPoint).longitude
-                    val category = document.getLong("category")?.toInt() ?: 0
-                    // imageUri 및 imageString은 Firestore 문서에 포함되어 있지 않으므로 null로 처리
-                    val imageUri: Uri? = null
-                    val imageString: String? = null
-                    val id: String = document.id//마커 id
-
-                    val star: Int = document.getLong("star")?.toInt() ?: 0//추가된 것(점수)
-
-                    Log.d("kim", "${document.data}")
-                    //---------------------------핵심-----------------------------//
-                    mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category, star, id))
-                }
-                // DB에 저장된 데이터 모두 불러온 후
-                currentPOIItems = mapView.poiItems
-            }
-            .addOnFailureListener { exception ->
-                Log.w("kim", "Error getting documents.", exception)
-            }
+        // DB 불러오기
+        loadDB()
 
         // 카테고리 버튼 색상 초기화
         fun buttonColorInit() {
@@ -379,6 +388,11 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 mapView.addPOIItem(poiItem)
             }
         }
+        // 새로 고침 버튼
+        binding.refreshButton.setOnClickListener {
+            mapView.removeAllPOIItems()
+            loadDB()
+        }
     }
 
     // 커스텀 말풍선 - binding으로 코드를 더 깔끔하게 수정할 수 있을 듯함
@@ -443,29 +457,57 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
         // 여기에서 Intent를 생성하고 필요한 데이터를 추가
         val intent = Intent(this@MainActivity, ShowPlaceActivity::class.java)
+        //위도와 경도를 찾은 후 문서 정보도 넘김
 
-        // 마커에 대한 정보를 Intent에 추가
-        intent.putExtra("show_name", poiItem?.itemName)
-        Log.d("show_name", poiItem?.itemName.toString())
-        intent.putExtra("show_latitude", poiItem?.mapPoint?.mapPointGeoCoord?.latitude ?: 0.0)
-        intent.putExtra("show_longitude", poiItem?.mapPoint?.mapPointGeoCoord?.longitude ?: 0.0)
-        intent.putExtra("show_category", getCategoryType(poiItem?.markerType))
-        intent.putExtra("show_star", poiItem?.tag)//추가된 것(점수
-        intent.putExtra("show_id", poiItem?.userObject.toString())//마커 id
+        val collectionName = "sampleMarker"
+        var documentId = ""  // Declare documentId here
 
-        // 이미지를 특정 크기로 조절하고 회전 정보 고려
-        val scaledAndRotatedBitmap = rotateBitmap(scaleBitmap(poiItem?.customImageBitmap, 500, 500), getRotationFromExif(poiItem))
+        db.collection(collectionName)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                for (document in querySnapshot) {
+                    val latitude = (document["gps"] as GeoPoint).latitude
+                    val longitude = (document["gps"] as GeoPoint).longitude
+                    Log.d("song", "Latitude from database: $latitude")
+                    Log.d("song", "Longitude from database: $longitude")
+                    Log.d("song", "Latitude from poiItem: ${poiItem?.mapPoint?.mapPointGeoCoord?.latitude}")
+                    Log.d("song", "Longitude from poiItem: ${poiItem?.mapPoint?.mapPointGeoCoord?.longitude}")
 
-        // 이미지를 ByteArrayOutputStream에 압축
-        val stream = ByteArrayOutputStream()
-        scaledAndRotatedBitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)
-        val byteArray = stream.toByteArray()
+                    // GPS 좌표를 비교하여 일치하는 문서를 찾음
+                    if (latitude == poiItem?.mapPoint?.mapPointGeoCoord?.latitude && longitude == poiItem?.mapPoint?.mapPointGeoCoord?.longitude) {
+                        documentId = document.id
+                        Log.d("song", "Found document with ID: $documentId")
+                        break
+                    }
+                }
 
-        // Intent에 바이트 배열 추가
-        intent.putExtra("show_image", byteArray)
+                // 마커에 대한 정보를 Intent에 추가
+                intent.putExtra("document_Id", documentId)
+                intent.putExtra("show_name", poiItem?.itemName)
+                Log.d("show_name", poiItem?.itemName.toString())
+                intent.putExtra("show_latitude", poiItem?.mapPoint?.mapPointGeoCoord?.latitude ?: 0.0)
+                intent.putExtra("show_longitude", poiItem?.mapPoint?.mapPointGeoCoord?.longitude ?: 0.0)
+                intent.putExtra("show_category", getCategoryType(poiItem?.markerType))
+                intent.putExtra("show_star", poiItem?.tag)//추가된 것(점수
+                intent.putExtra("show_id", poiItem?.userObject.toString())//마커 id
 
-        // 생성된 Intent를 사용하여 다른 Activity 시작
-        startActivity(intent)
+                // 이미지를 특정 크기로 조절하고 회전 정보 고려
+                val scaledAndRotatedBitmap = rotateBitmap(
+                    scaleBitmap(poiItem?.customImageBitmap, 500, 500),
+                    getRotationFromExif(poiItem)
+                )
+
+                // 이미지를 ByteArrayOutputStream에 압축
+                val stream = ByteArrayOutputStream()
+                scaledAndRotatedBitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                val byteArray = stream.toByteArray()
+
+                // Intent에 바이트 배열 추가
+                intent.putExtra("show_image", byteArray)
+
+                // 생성된 Intent를 사용하여 다른 Activity 시작
+                resultLauncher.launch(intent)
+            }
     }
 
     // 이미지의 회전 정보를 가져오는 함수
