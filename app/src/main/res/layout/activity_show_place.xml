@@ -23,6 +23,7 @@
             android:layout_marginTop="6dp"
             android:src="@drawable/blank_heart"/>
 
+
         <!-- 닫기 버튼 -->
         <ImageView
             android:id="@+id/closeButton"
@@ -35,6 +36,7 @@
             android:src="@drawable/red_close_button"/>
 
     </RelativeLayout>
+
 
     <TextView
         android:id="@+id/show_name_textView"
@@ -80,6 +82,7 @@
         android:orientation="horizontal"
         android:layout_marginTop="5dp">
 
+
         <ImageView
             android:id="@+id/star_score1"
             android:layout_marginHorizontal="1dp"
@@ -118,7 +121,8 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/commentsRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:padding="16dp"
         android:scrollbars="vertical"/>
 
@@ -136,5 +140,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="제출"/>
+    <Button
+        android:id="@+id/remove_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="삭제하기"
+        />
 
 </LinearLayout>

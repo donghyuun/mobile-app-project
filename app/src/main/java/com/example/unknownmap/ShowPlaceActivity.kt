@@ -1,5 +1,7 @@
 package com.example.unknownmap
 
+import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
@@ -34,6 +36,7 @@ class ShowPlaceActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Intent에서 데이터를 추출
+        val documentId=intent.getStringExtra("document_Id") ?:"" ///문서 id 받는 val documentId추가
         val name = intent.getStringExtra("show_name") ?: ""
         val latitude = String.format("%.2f", intent.getDoubleExtra("show_latitude", 0.0))
         val longitude = String.format("%.2f", intent.getDoubleExtra("show_longitude", 0.0))
@@ -115,6 +118,42 @@ class ShowPlaceActivity : AppCompatActivity() {
                     }
                 }
         }
+
+        ///삭제하기 버튼 클릭 이벤트
+        binding.removeButton.setOnClickListener{
+            val builder = AlertDialog.Builder(this@ShowPlaceActivity) // 'context' 대신 'this@MainActivity' 사용
+            val itemList = arrayOf( "삭제하기", "취소")
+            builder.setItems(itemList) { dialog, which ->
+                when (which) {
+
+                    0 -> {
+
+                        val collectionName = "sampleMarker"
+                        val db= Firebase.firestore
+                        Log.d("dcid=",documentId)
+                        db.collection(collectionName).document(documentId)
+                            .delete()
+                            .addOnSuccessListener {
+                                // 성공적으로 삭제된 경우 처리할 로직 추가
+                                Log.d("song", "Document successfully deleted with ID: $documentId")
+                            }
+                            .addOnFailureListener { e ->
+                                // 삭제 중에 오류가 발생한 경우 처리할 로직 추가
+                                Log.w("song", "Error deleting document with ID: $documentId", e)
+                            }
+//                        val mainIntent = Intent(this@ShowPlaceActivity, MainActivity::class.java)
+//                        startActivity(mainIntent)
+                        finish()  // Optional: Close the current activity if needed
+                    }
+                    1 ->{
+                        dialog.dismiss()
+                    }
+                    // 대화상자 닫기
+                }
+            }
+            builder.show()
+        }
+
 
         if(star == 0){
             binding.starScore1.setImageResource(R.drawable.star_dark)
@@ -200,6 +239,9 @@ class ShowPlaceActivity : AppCompatActivity() {
             }
 
         Log.d("DB","adfasdfadsfaf")
+
+        // ShowPlaceActivity가 끝날 때 Result 값 11로 지정
+        setResult(11)
     }
 
     private fun getCategoryString(category: Int): String {
