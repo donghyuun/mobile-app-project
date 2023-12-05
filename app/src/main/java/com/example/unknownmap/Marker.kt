@@ -13,3 +13,10 @@ data class Marker(
     val imageUri: Uri? = null,
     val star: Int,
 ) : Serializable
+
+data class ReviewData(
+    val content: String? = null,
+    val createdDate: com.google.firebase.Timestamp? = null,
+    val userNickName: String? = null,
+    val userId: String? = null
+)
