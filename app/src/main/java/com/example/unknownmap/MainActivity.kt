@@ -290,8 +290,6 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
         binding.myLocationBtn.setOnClickListener {
             mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(currentMapPoint.mapPointGeoCoord.latitude,  currentMapPoint.mapPointGeoCoord.longitude), true)
-            val mapPoint = MapPoint.mapPointWithGeoCoord(latitude, longitude)
-            mapView.setMapCenterPoint(mapPoint, true)
         }
 
 
