@@ -33,12 +33,11 @@ import com.bumptech.glide.module.AppGlideModule
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.example.unknownmap.databinding.ActivityMainBinding
-import com.google.firebase.Firebase
 import com.google.firebase.database.core.Context
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.firestore
-import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.storage.StorageReference
 import net.daum.mf.map.api.CalloutBalloonAdapter
 import net.daum.mf.map.api.CameraUpdate
@@ -49,8 +48,9 @@ import net.daum.mf.map.api.MapView.CurrentLocationTrackingMode
 import okio.IOException
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.InputStream
-import java.net.URLEncoder
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.ktx.storage
 
 
 class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.MapViewEventListener, MapView.CurrentLocationEventListener {
@@ -71,8 +71,9 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
     lateinit var currentPOIItems: Array<MapPOIItem>
 
     // firestore 데이터를 가져오기 위한 객체
-    var firestore : FirebaseFirestore? = null
+    // var firestore : FirebaseFirestore? = null
     val db = Firebase.firestore
+    // val storage = Firebase.storage
 
     // setPlaceActivity의 결과를 가져오기 위한 객체
     private lateinit var resultLauncher : ActivityResultLauncher<Intent>
@@ -208,9 +209,9 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                         val latitude = (document["gps"] as GeoPoint).latitude
                         val longitude = (document["gps"] as GeoPoint).longitude
                         val category = document.getLong("category")?.toInt() ?: 0
-                        val imageString = document.getString("imageUri") ?: ""
+                        val imageString = document.getString("imageString") ?: ""
                         val imageUri = Uri.parse(imageString)
-                        val id: String = document.id
+                        val id: String = document.getString("id") ?: ""
                         val star: Int = document.getLong("star")?.toInt() ?: 0
                         mapView.addPOIItem(createMarker(name, latitude, longitude, imageString, category, star, id))
                     }
@@ -227,21 +228,22 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             ActivityResultContracts.StartActivityForResult()){ result ->
             // SetPlaceActivity에서 등록 성공하여 돌아온다면
             if (result.resultCode == RESULT_OK) {
-
-                val name = result.data?.getStringExtra("set_name") ?: ""
-                val latitude = result.data?.getDoubleExtra("set_latitude", 0.0)
-                val longitude = result.data?.getDoubleExtra("set_longitude", 0.0)
-                val category = result.data?.getIntExtra("categoryNum", 0)
-                val imageString = result.data?.getStringExtra("image")
-                val imageUri = Uri.parse(imageString)
-                var nullableStar = result.data?.getIntExtra("star", 0)
-                var star = nullableStar ?: 0
-
-                val id = result.data?.getStringExtra("id") ?: ""
-
-                Log.d("kim", "got name : ${name}, got lat :${latitude}, got lon : ${longitude}")
-                mapView.addPOIItem(createMarker(name, latitude!!, longitude!!, imageString, category, star, id))
-                lastSetTime = result.data?.getLongExtra("last_set_time", 0)
+//
+//                val name = result.data?.getStringExtra("set_name") ?: ""
+//                val latitude = result.data?.getDoubleExtra("set_latitude", 0.0)
+//                val longitude = result.data?.getDoubleExtra("set_longitude", 0.0)
+//                val category = result.data?.getIntExtra("categoryNum", 0)
+//                val imageString = result.data?.getStringExtra("image")
+//                var nullableStar = result.data?.getIntExtra("star", 0)
+//                var star = nullableStar ?: 0
+//
+//                val id = result.data?.getStringExtra("id") ?: ""
+//
+//                Log.d("kim", "got name : ${name}, got lat :${latitude}, got lon : ${longitude}")
+//                mapView.addPOIItem(createMarker(name, latitude!!, longitude!!, imageString, category, star, id))
+//                lastSetTime = result.data?.getLongExtra("last_set_time", 0)
+                mapView.removeAllPOIItems()
+                loadDB()
             }
             // ShowPlaceActivity에서 돌아온다면
             else if (result.resultCode == 11) {
@@ -439,44 +441,28 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             }
             name.text = poiItem?.itemName  // 해당 마커의 정보 이용 가능
 
-
-//            image.setImageBitmap(poiItem?.customImageBitmap)
-
             val userObjectData = poiItem?.userObject as? UserObjectData
-            val customImageURL = userObjectData?.imageUrl // String Type
+            val uniqueId = userObjectData?.id
 
-//            val st = FirebaseStorage.getInstance()
-//            val gsReference = st.getReferenceFromUrl("gs://mobile-app-1-e50ab.appspot.com/images/"
-//                    + userObjectData?.id.toString())
-//
-//            Log.d("Gilde", gsReference.toString())
-//
-//            if (!customImageURL.isNullOrBlank()) {
-//                Glide.with(image.context)
-//                    .load(gsReference)
-//                    .into(image)
-//            }
-            if (!customImageURL.isNullOrBlank()) {
-                activity.runOnUiThread {
-                    Glide.with(image.context)
-                        .load(customImageURL)
-                        .centerCrop()
-                        .placeholder(R.drawable.blank_heart) // 로딩 중에 표시할 이미지
-                        .into(image)
+            val storage = Firebase.storage
+            val storageReference = storage.reference
 
-                    Log.d("test2", "1111")
-                    Log.d("test2", customImageURL.toString())
-                }
-            }
-            else {
+            Log.d("test2", poiItem?.itemName.toString() + " id: " + uniqueId.toString())
+
+            val storageRef: StorageReference = storageReference.child("images/${uniqueId}.jpg")
+            storageRef.downloadUrl.addOnSuccessListener { uri ->
+                Glide.with(image.context)
+                    .load(uri)
+                    .into(image)
+                Log.d("test2","1111 " + uri.toString())
+            }.addOnFailureListener { exception ->
                 image.apply {
                     setImageResource(R.drawable.nothing)
                     baselineAlignBottom = true
                     scaleType = ImageView.ScaleType.CENTER_CROP
+                    Log.d("test2", "2222 " )
                 }
-                Log.d("test2", "2222")
             }
-
 
             address.text = "getCalloutBalloon"
             Log.d("window", "getCalloutBalloon run")

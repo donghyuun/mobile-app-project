@@ -39,7 +39,6 @@ class SetPlaceActivity : AppCompatActivity() {
     var firestore: FirebaseFirestore? = null
     var storage: FirebaseStorage? = null
 
-
     // 사진 업로드를 위한 Activity에서 결과 가져오기
     private lateinit var resultLauncher: ActivityResultLauncher<Intent>
 
@@ -268,9 +267,18 @@ class SetPlaceActivity : AppCompatActivity() {
 
         // 등록 버튼 리스너 ***Marker 클래스에 넣을 값들을 intent로 MainActivity로 넘겨줌***
         binding.setPlaceSetBtn.setOnClickListener {
+            val currentTime = System.currentTimeMillis()
+            var lastSetTime = intent.getLongExtra("last_set_time", 0)
 
-            val name = binding.placeName.text.toString()
-            val uniqueId = UUID.randomUUID().toString()
+            // 마지막 등록 시간의 기본 값(없을 때)은 현재 시간
+            if (lastSetTime == 0.toLong()) {
+                lastSetTime = currentTime
+            }
+
+            val leftTime = currentTime - lastSetTime
+            // 밀리초 단위
+            val limitTime = 60000
+            // 마지막 등록 시간으로부터 지난 시간이 1분 이하면 등록 안 됨 (수정 가능)
 
             // Show progress message
             val progressDialog = ProgressDialog(this@SetPlaceActivity)
@@ -279,38 +287,26 @@ class SetPlaceActivity : AppCompatActivity() {
             progressDialog.setCancelable(false)
             progressDialog.show()
 
-            val currentTime = System.currentTimeMillis()
-            var lastSetTime = intent.getLongExtra("last_set_time", 0)
-            // 마지막 등록 시간의 기본 값(없을 때)은 현재 시간
-            if (lastSetTime == 0.toLong()) {
-                lastSetTime = currentTime
-            }
-
-
-            val leftTime = currentTime - lastSetTime
-            // 밀리초 단위
-            val limitTime = 60000
-            // 마지막 등록 시간으로부터 지난 시간이 1분 이하면 등록 안 됨 (수정 가능)
             if (leftTime in 1..limitTime) {
                 val sec = (leftTime) / 1000
-                Toast.makeText(this, "${limitTime / 1000 - sec}초 후에 등록이 가능해요.", Toast.LENGTH_SHORT)
-                    .show()
-            } else {
+                Toast.makeText(this, "${limitTime / 1000 - sec}초 후에 등록이 가능해요.", Toast.LENGTH_SHORT).show()
+            }
+            else {
                 val name = binding.placeName.text.toString()
                 val uniqueId = UUID.randomUUID()
                     .toString()//랜덤한 아이디(키값) 생성, DB저장용, but MainActivity에서도 사용해야 하므로 intent로 넘겨줌
 
-                intent.putExtra("isSet", true)
-                intent.putExtra("categoryNum", currentSelectedNum)
-                intent.putExtra("id", uniqueId)
-                intent.putExtra("star", currentScore)
-
+                // 등록 시간
                 intent.putExtra("last_set_time", System.currentTimeMillis())
 
                 intent.putExtra("set_latitude", latitude)
                 intent.putExtra("set_longitude", longitude)
                 intent.putExtra("set_name", name)
 
+                intent.putExtra("isSet", true)
+                intent.putExtra("categoryNum", currentSelectedNum)
+                intent.putExtra("star", currentScore)
+                intent.putExtra("id", uniqueId)
 
                 if (uri != null) {
                     val storageRef = storage!!.getReference().child("images/${uniqueId}.jpg")
@@ -333,9 +329,10 @@ class SetPlaceActivity : AppCompatActivity() {
 
                             // Intent에 이미지의 URL 추가
                             intent.putExtra("image", downloadUri.toString())
+                            setResult(RESULT_OK, intent)
 
                             val marker = Marker(
-                                uniqueID = uniqueId,
+                                id = uniqueId,
                                 name = name,
                                 gps = GeoPoint(latitude, longitude),
                                 category = currentSelectedNum,
@@ -347,7 +344,6 @@ class SetPlaceActivity : AppCompatActivity() {
                             firestore?.collection("sampleMarker")?.document(uniqueId)?.set(marker)
                                 ?.addOnSuccessListener {
                                     progressDialog.dismiss() // Dismiss progress dialog
-                                    setResult(RESULT_OK, intent)
                                     finish()
                                 }
                                 ?.addOnFailureListener { e ->
@@ -370,7 +366,7 @@ class SetPlaceActivity : AppCompatActivity() {
                     setResult(RESULT_OK, intent)
 
                     val marker = Marker(
-                        uniqueID = uniqueId,
+                        id = uniqueId,
                         name = name,
                         gps = GeoPoint(latitude, longitude),
                         category = currentSelectedNum,
@@ -378,7 +374,6 @@ class SetPlaceActivity : AppCompatActivity() {
                         imageUri = uri,
                         star = currentScore
                     )
-
 
                     firestore?.collection("sampleMarker")
                         ?.document(uniqueId)
@@ -400,10 +395,12 @@ class SetPlaceActivity : AppCompatActivity() {
                     finish()
 
                 }
-            }
 
-            setContentView(binding.root)
+                // finish()//스택에 쌓인 직전 엑티비티(=MainActivity)로 이동
+            }
         }
 
+        setContentView(binding.root)
     }
+
 }

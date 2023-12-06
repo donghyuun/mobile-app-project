@@ -74,7 +74,8 @@ dependencies {
     annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
 //    implementation("com.firebaseui:firebase-ui-storage:4.3.2")
     implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-storage:20.3.0")
     implementation("com.google.firebase:firebase-core:21.1.1")
+    implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-storage-ktx:20.3.0")
-
 }
