@@ -36,7 +36,7 @@ class ShowPlaceActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Intent에서 데이터를 추출
-        val documentId=intent.getStringExtra("document_Id") ?:""
+        val documentId=intent.getStringExtra("document_Id") ?:"" ///문서 id 받는 val documentId추가
         val name = intent.getStringExtra("show_name") ?: ""
         val latitude = String.format("%.2f", intent.getDoubleExtra("show_latitude", 0.0))
         val longitude = String.format("%.2f", intent.getDoubleExtra("show_longitude", 0.0))
@@ -52,6 +52,12 @@ class ShowPlaceActivity : AppCompatActivity() {
             null
         }
 
+        ////  (득모)main 갖다와도 한번 빨간 하트 설정되있는 거는 계속 빨간색 유지하기
+        if (MainActivity.favoritePlaces.contains(documentId)) {
+            binding.heartButton.setImageResource(R.drawable.red_heart)
+        } else {
+            binding.heartButton.setImageResource(R.drawable.blank_heart)
+        }
         //MainActivity의 static 변수에 저장된 유저 정보를 출력해본다
         Log.d("user", "in ShowPlaceActivity, ${MainActivity.staticUserId}")
         Log.d("user", "in ShowPlaceActivity, ${MainActivity.staticUserEmail}")
@@ -70,9 +76,13 @@ class ShowPlaceActivity : AppCompatActivity() {
             if (currentImageResource.constantState == resources.getDrawable(R.drawable.blank_heart).constantState) {
                 // 현재 이미지가 blank_heart이면 filled_heart로 변경
                 binding.heartButton.setImageResource(R.drawable.red_heart)
+                MainActivity.favoritePlaces.add(documentId)
+                Log.d("inputdid to array","$documentId")
+
             } else {
                 // 현재 이미지가 red_heart이면 blank_heart로 변경
                 binding.heartButton.setImageResource(R.drawable.blank_heart)
+                MainActivity.favoritePlaces.remove(documentId)
             }
         }
         //*********************리뷰 등록 버튼*********************//
@@ -118,6 +128,8 @@ class ShowPlaceActivity : AppCompatActivity() {
                     }
                 }
         }
+
+        ///삭제하기 버튼 클릭 이벤트
         binding.removeButton.setOnClickListener{
             val builder = AlertDialog.Builder(this@ShowPlaceActivity) // 'context' 대신 'this@MainActivity' 사용
             val itemList = arrayOf( "삭제하기", "취소")
@@ -139,8 +151,8 @@ class ShowPlaceActivity : AppCompatActivity() {
                                 // 삭제 중에 오류가 발생한 경우 처리할 로직 추가
                                 Log.w("song", "Error deleting document with ID: $documentId", e)
                             }
-                        val mainIntent = Intent(this@ShowPlaceActivity, MainActivity::class.java)
-                        startActivity(mainIntent)
+//                        val mainIntent = Intent(this@ShowPlaceActivity, MainActivity::class.java)
+//                        startActivity(mainIntent)
                         finish()  // Optional: Close the current activity if needed
                     }
                     1 ->{
@@ -231,6 +243,10 @@ class ShowPlaceActivity : AppCompatActivity() {
             .addOnFailureListener { exception ->
                 Log.d("review", "ShowPlaceActivity: get failed with ", exception)
             }
+
+
+        // ShowPlaceActivity가 끝날 때 Result 값 11로 지정
+        setResult(11)
 
         Log.d("review","adfasdfadsfaf")
     }

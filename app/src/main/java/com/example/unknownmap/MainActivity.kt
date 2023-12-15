@@ -10,6 +10,8 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -48,11 +50,17 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         var staticUserEmail: String = ""
         var staticUserNickname: String = ""
         var staticUserToken: String = ""
+        // 하트를 클릭한 documentId를 저장하는 배열
+        var favoritePlaces = mutableListOf<String>()
+
     }
     //----------------------------------------------//
 
     // 현재 MapPoint 위치
     lateinit var currentMapPoint : MapPoint
+
+    // 현재 모든 POIItems 담는 배열
+    lateinit var currentPOIItems: Array<MapPOIItem>
 
     // firestore 데이터를 가져오기 위한 객체
     var firestore : FirebaseFirestore? = null
@@ -135,6 +143,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         return marker//마커 반환
     }
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityMainBinding.inflate(layoutInflater)
@@ -166,36 +175,11 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 //            kakaoLogout()
         }
 
+
         val mapView = MapView(this)
         mapView.setPOIItemEventListener(this)
         val mapViewContainer = binding.mapView as ViewGroup
         mapViewContainer.addView(mapView)
-        //새로고침버튼
-        binding.refreshButton.setOnClickListener {
-            mapView.removeAllPOIItems()
-            lateinit var currentPOIItems1: Array<MapPOIItem>
-            // DB에 저장된 데이터 불러오기
-            db.collection("sampleMarker")
-                .get()
-                .addOnSuccessListener { result ->
-                    for (document in result) {
-                        val name = document.getString("name") ?: ""
-                        val latitude = (document["gps"] as GeoPoint).latitude
-                        val longitude = (document["gps"] as GeoPoint).longitude
-                        val category = document.getLong("category")?.toInt() ?: 0
-                        val imageUri: Uri? = null
-                        val imageString: String? = null
-                        val id: String = document.id
-                        val star: Int = document.getLong("star")?.toInt() ?: 0
-                        mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category, star, id))
-                    }
-                    val currentPOIItems1 = mapView.poiItems
-                    // Now you have the most up-to-date list of items
-                }
-                .addOnFailureListener { exception ->
-                    Log.w("kim", "Error getting documents.", exception)
-                }
-        }
 
         // 커스텀 말풍선 설정
         mapView.setCalloutBalloonAdapter(CustomBalloonAdapter(layoutInflater))
@@ -218,11 +202,87 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             override fun onMapViewMoveFinished(p0: MapView?, p1: MapPoint?) {}
         })
 
-        // SetPlaceActivity 로부터 결과를 받아오는 코드 ***등록할 좌표 정보, 이름, 카테고리 등을 받아와서 mapView에 좌표로 등록***
+        // DB에 저장된 데이터 불러오기
+        fun loadDB() {
+            db.collection("sampleMarker")
+                .get()
+                .addOnSuccessListener { result ->
+                    for (document in result) {
+                        val name = document.getString("name") ?: ""
+                        val latitude = (document["gps"] as GeoPoint).latitude
+                        val longitude = (document["gps"] as GeoPoint).longitude
+                        val category = document.getLong("category")?.toInt() ?: 0
+                        val imageUri: Uri? = null
+                        val imageString: String? = null
+                        val id: String = document.id
+                        val star: Int = document.getLong("star")?.toInt() ?: 0
+                        mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category, star, id))
+                    }
+                    currentPOIItems = mapView.poiItems
+                    // Now you have the most up-to-date list of items
+                }
+                .addOnFailureListener { exception ->
+                    Log.w("kim", "Error getting documents.", exception)
+                }
+        }
+
+        binding.mainStarBtn.setOnClickListener{
+            val currentImageResource = binding.mainStarBtn.drawable
+
+            // 현재 이미지와 비교하여 변경
+            if (currentImageResource.constantState == resources.getDrawable(R.drawable.star_light).constantState) {
+                // 현재 하트가 밝은 하트이면 다시 어두운 하트로 만듬
+                binding.mainStarBtn.setImageResource(R.drawable.star_dark)
+                //그후 db에서 모든 값들을 다시 불러옴
+                mapView.removeAllPOIItems()
+                loadDB()
+
+            } else {
+                // 현재 이미지가 red_heart이면 blank_heart로 변경
+                binding.mainStarBtn.setImageResource(R.drawable.star_light)
+                ///현재 표시된 것들을 지운후 즐겨찾기 눌러놓은 것들만 화면에 출력되게함
+                mapView.removeAllPOIItems()
+                db.collection("sampleMarker")
+                    .get()
+                    .addOnSuccessListener { result ->
+                        // 화면에 출력할 마커 목록을 담을 리스트
+                        val displayMarkers = mutableListOf<MapPOIItem>()
+
+                        for (document in result) {
+                            val name = document.getString("name") ?: ""
+                            val latitude = (document["gps"] as GeoPoint).latitude
+                            val longitude = (document["gps"] as GeoPoint).longitude
+                            val category = document.getLong("category")?.toInt() ?: 0
+                            val id: String = document.id
+                            val star: Int = document.getLong("star")?.toInt() ?: 0
+
+                            // favoritePlaces 목록에 있는 documentId 값과 일치하는 마커만 가져오기
+                            if (favoritePlaces.contains(id)) {
+                                displayMarkers.add(createMarker(name, latitude, longitude, null, category, star, id))
+                            }
+                        }
+
+                        // displayMarkers를 mapView에 추가
+                        for (marker in displayMarkers) {
+                            mapView.addPOIItem(marker)
+                        }
+
+                        currentPOIItems = mapView.poiItems
+                        // Now you have the most up-to-date list of items
+                    }
+                    .addOnFailureListener { exception ->
+                        Log.w("kim", "Error getting documents.", exception)
+                    }
+
+
+            }
+
+        }
+        // 다른 액티비티로부터 결과를 받아오는 코드 ***등록할 좌표 정보, 이름, 카테고리 등을 받아와서 mapView에 좌표로 등록***
         resultLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()){ result ->
-            // 서브 액티비티로부터 돌아올 때의 결과 값을 받아 올 수 있는 구문
-            if (result.resultCode == RESULT_OK){
+            // SetPlaceActivity에서 등록 성공하여 돌아온다면
+            if (result.resultCode == RESULT_OK) {
 
                 val name = result.data?.getStringExtra("set_name") ?: ""
                 val latitude = result.data?.getDoubleExtra("set_latitude", 0.0)
@@ -239,7 +299,14 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 Log.d("kim", "got name : ${name}, got lat :${latitude}, got lon : ${longitude}")
                 mapView.addPOIItem(createMarker(name, latitude!!, longitude!!, imageUri, category, star, id))
             }
+            // ShowPlaceActivity에서 돌아온다면
+            else if (result.resultCode == 11) {
+                // 지도 새로고침
+                mapView.removeAllPOIItems()
+                loadDB()
+            }
         }
+
         // 장소 등록 버튼 리스너, ***누르면 장소 등록 activity 로 이동***
         var addr = ""
         binding.btnSetPlace.setOnClickListener{
@@ -280,35 +347,8 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(currentMapPoint.mapPointGeoCoord.latitude,  currentMapPoint.mapPointGeoCoord.longitude), true)
         }
 
-        // 현재 모든 POIItems 담는 배열
-        lateinit var currentPOIItems: Array<MapPOIItem>
-
-        // DB에 저장된 데이터 불러오기
-        db.collection("sampleMarker")
-            .get()
-            .addOnSuccessListener { result ->
-                for (document in result) {
-                    val name = document.getString("name") ?: ""
-                    val latitude = (document["gps"] as GeoPoint).latitude
-                    val longitude = (document["gps"] as GeoPoint).longitude
-                    val category = document.getLong("category")?.toInt() ?: 0
-                    // imageUri 및 imageString은 Firestore 문서에 포함되어 있지 않으므로 null로 처리
-                    val imageUri: Uri? = null
-                    val imageString: String? = null
-                    val id: String = document.id//마커 id
-
-                    val star: Int = document.getLong("star")?.toInt() ?: 0//추가된 것(점수)
-
-                    Log.d("kim", "${document.data}")
-                    //---------------------------핵심-----------------------------//
-                    mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category, star, id))
-                }
-                // DB에 저장된 데이터 모두 불러온 후
-                currentPOIItems = mapView.poiItems
-            }
-            .addOnFailureListener { exception ->
-                Log.w("kim", "Error getting documents.", exception)
-            }
+        // DB 불러오기
+        loadDB()
 
         // 카테고리 버튼 색상 초기화
         fun buttonColorInit() {
@@ -404,6 +444,11 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             for (poiItem in currentPOIItems) {
                 mapView.addPOIItem(poiItem)
             }
+        }
+        // 새로 고침 버튼
+        binding.refreshButton.setOnClickListener {
+            mapView.removeAllPOIItems()
+            loadDB()
         }
     }
 
@@ -518,9 +563,10 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 intent.putExtra("show_image", byteArray)
 
                 // 생성된 Intent를 사용하여 다른 Activity 시작
-                startActivity(intent)
+                resultLauncher.launch(intent)
             }
     }
+
     // 이미지의 회전 정보를 가져오는 함수
     private fun getRotationFromExif(poiItem: MapPOIItem?): Int {
         try {

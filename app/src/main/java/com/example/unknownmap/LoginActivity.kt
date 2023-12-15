@@ -218,6 +218,7 @@ class LoginActivity : AppCompatActivity() {
                             }
                             //----------------------------------------------------------------//
                             // MainActivity로 이동
+                            intent.putExtra("UserDocument",userInfo.id)
                             startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
                             finish()
                         }
