@@ -225,6 +225,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                         val id: String = document.id
                         val star: Int = document.getLong("star")?.toInt() ?: 0
                         mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category, star, id))
+                        Log.d("test", id)
                     }
                     currentPOIItems = mapView.poiItems
                     // Now you have the most up-to-date list of items
@@ -440,7 +441,6 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
         override fun getPressedCalloutBalloon(poiItem: MapPOIItem?): View {
             // 말풍선 클릭 시
-            address.text = "getPressedCalloutBalloon"
             Log.d("window", "getPressedCalloutBalloon run")
 
             return mCalloutBalloon
@@ -474,6 +474,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         val collectionName = "sampleMarker"
         var documentId = ""  // Declare documentId here
         var authorName = "" // 마커 생성자 이름
+
         db.collection(collectionName)
             .get()
             .addOnSuccessListener { querySnapshot ->
