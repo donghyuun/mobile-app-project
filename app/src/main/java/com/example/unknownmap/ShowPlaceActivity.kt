@@ -35,7 +35,11 @@ class ShowPlaceActivity : AppCompatActivity() {
         val binding = ActivityShowPlaceBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // firestore 설정
+        var firestore: FirebaseFirestore? = null
+
         // Intent에서 데이터를 추출
+        val token = intent.getStringExtra("token") ?:""
         val documentId=intent.getStringExtra("document_Id") ?:"" ///문서 id 받는 val documentId추가
         val name = intent.getStringExtra("show_name") ?: ""
         val latitude = String.format("%.2f", intent.getDoubleExtra("show_latitude", 0.0))
@@ -62,19 +66,7 @@ class ShowPlaceActivity : AppCompatActivity() {
         binding.closeButton.setOnClickListener {
             finish()
         }
-        binding.heartButton.setOnClickListener {
-            // 현재 이미지 리소스 가져오기
-            val currentImageResource = binding.heartButton.drawable
 
-            // 현재 이미지와 비교하여 변경
-            if (currentImageResource.constantState == resources.getDrawable(R.drawable.blank_heart).constantState) {
-                // 현재 이미지가 blank_heart이면 filled_heart로 변경
-                binding.heartButton.setImageResource(R.drawable.red_heart)
-            } else {
-                // 현재 이미지가 red_heart이면 blank_heart로 변경
-                binding.heartButton.setImageResource(R.drawable.blank_heart)
-            }
-        }
         //*********************리뷰 등록 버튼*********************//
         binding.submitCommentButton.setOnClickListener {
             //입력창 내용 가져오기
@@ -234,6 +226,76 @@ class ShowPlaceActivity : AppCompatActivity() {
                 Log.d("review", "ShowPlaceActivity: get failed with ", exception)
             }
 
+        var isFavorite : Boolean = false
+        lateinit var existingPlaceList : MutableList<String>
+        var usersDB = db.collection("users").document(MainActivity.staticUserId.toString())
+        usersDB.get().addOnSuccessListener() { document: DocumentSnapshot ->
+            existingPlaceList = document.data?.get("places") as MutableList<String>
+
+            // 즐겨찾기 places 에 속하면 하트 활성화
+            for (item in existingPlaceList) {
+                if (item == documentId) {
+                    binding.heartButton.setImageResource(R.drawable.red_heart)
+                    isFavorite = true
+                    break
+                }
+            }
+        }
+
+        binding.heartButton.setOnClickListener {
+            // 현재 이미지 리소스 가져오기
+            val currentImageResource = binding.heartButton.drawable
+
+            // 현재 이미지와 비교하여 변경
+            if (!isFavorite) {
+                // 현재 이미지가 blank_heart이면 filled_heart로 변경
+                binding.heartButton.setImageResource(R.drawable.red_heart)
+
+                usersDB.get()
+                    .addOnSuccessListener() { document: DocumentSnapshot ->
+                        if(document != null && document.exists()){
+                            //기존에 즐겨찾기가 존재하는 경우, 기존의 places 가져옴
+                            //새 즐겨찾기를 기존 places에 추가
+                            existingPlaceList.add(documentId)
+                            //firebase 문서 업데이트
+                            usersDB.update("places", existingPlaceList)
+                                ?.addOnSuccessListener {
+                                    Log.d("DB", "placeList successfully updated in existing document!")
+                                    Toast.makeText(this, "즐겨찾기가 등록되었습니다.", Toast.LENGTH_SHORT).show()
+                                }
+                                ?.addOnFailureListener { e ->
+                                    Log.d("DB", "Fail, can not updated exsisting placeList", e)
+                                    Toast.makeText(this, "Error, 즐겨찾기가 등록되지 않았습니다.", Toast.LENGTH_SHORT).show()
+                                }
+                        } else {
+                            //기존 문서가 존재하지 않는 경우, 새 문서 생성
+                            existingPlaceList.add(documentId)
+                            usersDB.set(existingPlaceList)
+                                .addOnSuccessListener {
+                                    Log.d("DB", "new placeList successfully created!")
+                                    Toast.makeText(this, "즐겨찾기가 등록되었습니다.", Toast.LENGTH_SHORT).show()
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.w("DB", "Fail, can not create new placeList", e)
+                                    Toast.makeText(this, "Error, 즐겨찾기가 등록되지 않았습니다.", Toast.LENGTH_SHORT).show()
+                                }
+                        }
+                    }
+            } else {
+                // 현재 이미지가 red_heart이면 blank_heart로 변경
+                binding.heartButton.setImageResource(R.drawable.blank_heart)
+                existingPlaceList.remove(documentId)
+                usersDB.update("places", existingPlaceList)
+                    ?.addOnSuccessListener {
+                        Log.d("DB", "placeList successfully updated in existing document!")
+                        Toast.makeText(this, "즐겨찾기가 제거되었습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                    ?.addOnFailureListener { e ->
+                        Log.d("DB", "Fail, can not updated exsisting placeList", e)
+                        Toast.makeText(this, "Error, 즐겨찾기가 제거되지 않았습니다.", Toast.LENGTH_SHORT).show()
+                    }
+            }
+        }
 
         // ShowPlaceActivity가 끝날 때 Result 값 11로 지정
         setResult(11)
