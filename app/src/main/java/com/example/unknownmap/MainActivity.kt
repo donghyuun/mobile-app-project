@@ -441,7 +441,6 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
         override fun getPressedCalloutBalloon(poiItem: MapPOIItem?): View {
             // 말풍선 클릭 시
-            address.text = "getPressedCalloutBalloon"
             Log.d("window", "getPressedCalloutBalloon run")
 
             return mCalloutBalloon
