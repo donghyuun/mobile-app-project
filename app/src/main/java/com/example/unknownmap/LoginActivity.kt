@@ -4,7 +4,10 @@ import android.content.ContentValues.TAG
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.view.View
 import com.example.unknownmap.databinding.ActivityLoginBinding
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
@@ -121,7 +124,7 @@ class LoginActivity : AppCompatActivity() {
         } else {
             //로그인 필요
             Log.d("LOGIN", "Login Needed")
-            kakaoLogin()
+            binding.loginView.visibility = View.VISIBLE
         }
 
         //----------------------카카오 로그인 버튼------------------------//
