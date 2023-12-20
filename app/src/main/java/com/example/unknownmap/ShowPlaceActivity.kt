@@ -101,6 +101,20 @@ class ShowPlaceActivity : AppCompatActivity() {
                                 Log.d("DB", "reviewList successfully updated in existing document!")
                                 binding.commentEditText.text.clear()
                                 Toast.makeText(this, "리뷰가 등록되었습니다.", Toast.LENGTH_SHORT).show()
+
+                                //화면 새로고침, Firestore의 데이터 변경사항이 적용된 후에 갱신하기 위해 여기에 작성
+                                val intent = Intent(this, ShowPlaceActivity::class.java)
+                                intent.putExtra("document_Id", documentId)
+                                intent.putExtra("show_name", name)
+                                intent.putExtra("show_latitude", latitude.toDouble())
+                                intent.putExtra("show_longitude", longitude.toDouble())
+                                intent.putExtra("show_category", category)
+                                intent.putExtra("show_image", byteArray)
+                                intent.putExtra("show_star", star)
+                                intent.putExtra("show_id", id)
+                                intent.putExtra("show_author", authorName)
+                                startActivity(intent)
+                                finish()
                             }
                             .addOnFailureListener { e ->
                                 Log.d("DB", "Fail, can not updated exsisting reviewList", e)
@@ -248,8 +262,6 @@ class ShowPlaceActivity : AppCompatActivity() {
 
         // ShowPlaceActivity가 끝날 때 Result 값 11로 지정
         setResult(11)
-        
-        Log.d("review","adfasdfadsfaf")
     }
 
     private fun getCategoryString(category: Int): String {
