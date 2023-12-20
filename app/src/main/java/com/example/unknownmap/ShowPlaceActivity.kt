@@ -51,12 +51,15 @@ class ShowPlaceActivity : AppCompatActivity() {
         } else {
             null
         }
+        val authorName = intent.getStringExtra("show_author") ?: ""
 
         //MainActivity의 static 변수에 저장된 유저 정보를 출력해본다
         Log.d("user", "in ShowPlaceActivity, ${MainActivity.staticUserId}")
         Log.d("user", "in ShowPlaceActivity, ${MainActivity.staticUserEmail}")
         Log.d("user", "in ShowPlaceActivity, ${MainActivity.staticUserNickname}")
         Log.d("user", "in ShowPlaceActivity, ${MainActivity.staticUserToken}")
+        Log.d("user", "in ShowPlaceActivity, ${authorName}")
+
 
         //닫기 버튼
         binding.closeButton.setOnClickListener {
@@ -98,6 +101,20 @@ class ShowPlaceActivity : AppCompatActivity() {
                                 Log.d("DB", "reviewList successfully updated in existing document!")
                                 binding.commentEditText.text.clear()
                                 Toast.makeText(this, "리뷰가 등록되었습니다.", Toast.LENGTH_SHORT).show()
+
+                                //화면 새로고침, Firestore의 데이터 변경사항이 적용된 후에 갱신하기 위해 여기에 작성
+                                val intent = Intent(this, ShowPlaceActivity::class.java)
+                                intent.putExtra("document_Id", documentId)
+                                intent.putExtra("show_name", name)
+                                intent.putExtra("show_latitude", latitude.toDouble())
+                                intent.putExtra("show_longitude", longitude.toDouble())
+                                intent.putExtra("show_category", category)
+                                intent.putExtra("show_image", byteArray)
+                                intent.putExtra("show_star", star)
+                                intent.putExtra("show_id", id)
+                                intent.putExtra("show_author", authorName)
+                                startActivity(intent)
+                                finish()
                             }
                             .addOnFailureListener { e ->
                                 Log.d("DB", "Fail, can not updated exsisting reviewList", e)
@@ -119,7 +136,15 @@ class ShowPlaceActivity : AppCompatActivity() {
                 }
         }
 
-        ///삭제하기 버튼 클릭 이벤트
+
+        //*********************리뷰 삭제 버튼*********************//
+        // 마커 작성자일때만 삭제 버튼 활성화
+        if(authorName == MainActivity.staticUserNickname) {
+            binding.removeButton.visibility = ViewGroup.VISIBLE
+        }else{
+            binding.removeButton.visibility = ViewGroup.GONE
+        }
+
         binding.removeButton.setOnClickListener{
             val builder = AlertDialog.Builder(this@ShowPlaceActivity) // 'context' 대신 'this@MainActivity' 사용
             val itemList = arrayOf( "삭제하기", "취소")
@@ -237,8 +262,6 @@ class ShowPlaceActivity : AppCompatActivity() {
 
         // ShowPlaceActivity가 끝날 때 Result 값 11로 지정
         setResult(11)
-        
-        Log.d("review","adfasdfadsfaf")
     }
 
     private fun getCategoryString(category: Int): String {

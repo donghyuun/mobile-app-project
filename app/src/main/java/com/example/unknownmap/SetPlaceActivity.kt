@@ -295,6 +295,7 @@ class SetPlaceActivity : AppCompatActivity() {
                 intent.putExtra("image", uri.toString())
                 intent.putExtra("star", currentScore)
                 intent.putExtra("id", uniqueId)
+                intent.putExtra("author", MainActivity.staticUserNickname)
                 // uri는 String으로 변환해서 intent로 넘기고, 받을 때 다시 parse 해야 함
 
                 setResult(RESULT_OK, intent)
@@ -307,7 +308,8 @@ class SetPlaceActivity : AppCompatActivity() {
                     category = currentSelectedNum,
                     imageString = uri.toString(),
                     imageUri = uri,
-                    star = currentScore
+                    star = currentScore,
+                    author = MainActivity.staticUserNickname
                 )
 
                 //Firebase에 저장
