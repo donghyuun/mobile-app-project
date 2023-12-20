@@ -51,12 +51,15 @@ class ShowPlaceActivity : AppCompatActivity() {
         } else {
             null
         }
+        val authorName = intent.getStringExtra("show_author") ?: ""
 
         //MainActivity의 static 변수에 저장된 유저 정보를 출력해본다
         Log.d("user", "in ShowPlaceActivity, ${MainActivity.staticUserId}")
         Log.d("user", "in ShowPlaceActivity, ${MainActivity.staticUserEmail}")
         Log.d("user", "in ShowPlaceActivity, ${MainActivity.staticUserNickname}")
         Log.d("user", "in ShowPlaceActivity, ${MainActivity.staticUserToken}")
+        Log.d("user", "in ShowPlaceActivity, ${authorName}")
+
 
         //닫기 버튼
         binding.closeButton.setOnClickListener {
@@ -119,7 +122,15 @@ class ShowPlaceActivity : AppCompatActivity() {
                 }
         }
 
-        ///삭제하기 버튼 클릭 이벤트
+
+        //*********************리뷰 삭제 버튼*********************//
+        // 마커 작성자일때만 삭제 버튼 활성화
+        if(authorName == MainActivity.staticUserNickname) {
+            binding.removeButton.visibility = ViewGroup.VISIBLE
+        }else{
+            binding.removeButton.visibility = ViewGroup.GONE
+        }
+
         binding.removeButton.setOnClickListener{
             val builder = AlertDialog.Builder(this@ShowPlaceActivity) // 'context' 대신 'this@MainActivity' 사용
             val itemList = arrayOf( "삭제하기", "취소")
