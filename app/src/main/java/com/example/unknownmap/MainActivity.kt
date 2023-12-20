@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.content.ContentResolver
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -12,6 +13,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -25,6 +27,8 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.example.unknownmap.databinding.ActivityMainBinding
 import com.example.unknownmap.databinding.BalloonLayoutBinding
 import com.google.firebase.Firebase
@@ -145,6 +149,15 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         val binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            || ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            var permissions = arrayOf(
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+            ActivityCompat.requestPermissions(this, permissions, 101)
+        }
 
         // Intent를 받아옴
         val intent = intent
@@ -421,7 +434,6 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 baselineAlignBottom = true
                 scaleType = ImageView.ScaleType.CENTER_CROP
             }
-            address.text = "getCalloutBalloon"
             Log.d("window", "getCalloutBalloon run")
             return mCalloutBalloon
         }
