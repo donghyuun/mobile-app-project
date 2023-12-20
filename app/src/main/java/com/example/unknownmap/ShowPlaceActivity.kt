@@ -275,6 +275,7 @@ class ShowPlaceActivity : AppCompatActivity() {
             if (!isFavorite) {
                 // 현재 이미지가 blank_heart이면 filled_heart로 변경
                 binding.heartButton.setImageResource(R.drawable.red_heart)
+                isFavorite = true
 
                 usersDB.get()
                     .addOnSuccessListener() { document: DocumentSnapshot ->
@@ -309,6 +310,7 @@ class ShowPlaceActivity : AppCompatActivity() {
             } else {
                 // 현재 이미지가 red_heart이면 blank_heart로 변경
                 binding.heartButton.setImageResource(R.drawable.blank_heart)
+                isFavorite = false
                 existingPlaceList.remove(documentId)
                 usersDB.update("places", existingPlaceList)
                     ?.addOnSuccessListener {
