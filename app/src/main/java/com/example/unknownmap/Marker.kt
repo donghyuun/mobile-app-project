@@ -12,6 +12,7 @@ data class Marker(
     val imageString: String? = null,
     val imageUri: Uri? = null,
     val star: Int,
+    val author: String? = null
 ) : Serializable
 
 data class ReviewData(

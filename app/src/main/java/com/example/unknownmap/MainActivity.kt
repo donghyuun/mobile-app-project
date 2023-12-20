@@ -212,6 +212,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                         val id: String = document.id
                         val star: Int = document.getLong("star")?.toInt() ?: 0
                         mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category, star, id))
+                        Log.d("test", id)
                     }
                     currentPOIItems = mapView.poiItems
                     // Now you have the most up-to-date list of items
@@ -461,7 +462,8 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
         val collectionName = "sampleMarker"
         var documentId = ""  // Declare documentId here
-
+        var authorName = "" // 마커 생성자 이름
+        var markerId = ""
         db.collection(collectionName)
             .get()
             .addOnSuccessListener { querySnapshot ->
@@ -472,7 +474,8 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                     Log.d("song", "Longitude from database: $longitude")
                     Log.d("song", "Latitude from poiItem: ${poiItem?.mapPoint?.mapPointGeoCoord?.latitude}")
                     Log.d("song", "Longitude from poiItem: ${poiItem?.mapPoint?.mapPointGeoCoord?.longitude}")
-
+                    authorName = document.getString("author") ?: ""//마커 생성자
+                    markerId = document.getString("id") ?: ""//마커 id
                     // GPS 좌표를 비교하여 일치하는 문서를 찾음
                     if (latitude == poiItem?.mapPoint?.mapPointGeoCoord?.latitude && longitude == poiItem?.mapPoint?.mapPointGeoCoord?.longitude) {
                         documentId = document.id
@@ -483,6 +486,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
                 // 마커에 대한 정보를 Intent에 추가
                 intent.putExtra("document_Id", documentId)
+                intent.putExtra("show_marker_id", markerId)
                 intent.putExtra("show_name", poiItem?.itemName)
                 Log.d("show_name", poiItem?.itemName.toString())
                 intent.putExtra("show_latitude", poiItem?.mapPoint?.mapPointGeoCoord?.latitude ?: 0.0)
@@ -490,6 +494,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 intent.putExtra("show_category", getCategoryType(poiItem?.markerType))
                 intent.putExtra("show_star", poiItem?.tag)//추가된 것(점수
                 intent.putExtra("show_id", poiItem?.userObject.toString())//마커 id
+                intent.putExtra("show_author", authorName)//마커 생성자
 
                 // 이미지를 특정 크기로 조절하고 회전 정보 고려
                 val scaledAndRotatedBitmap = rotateBitmap(
