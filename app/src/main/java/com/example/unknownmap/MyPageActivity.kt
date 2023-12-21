@@ -19,7 +19,7 @@ class MyPageActivity : AppCompatActivity() {
         binding.myPageUserId.text = "아이디\n${MainActivity.staticUserId.toString()}"
         binding.myPageUserEmail.text = "이메일\n${MainActivity.staticUserEmail}"
         binding.myPageUserNickname.text = "닉네임\n${MainActivity.staticUserNickname}"
-        binding.myPageUserToken.text = "토큰 정보\n${MainActivity.staticUserToken}"
+//        binding.myPageUserToken.text = "토큰 정보\n${MainActivity.staticUserToken}"
 
         //닫기 버튼
         binding.closeButton.setOnClickListener {

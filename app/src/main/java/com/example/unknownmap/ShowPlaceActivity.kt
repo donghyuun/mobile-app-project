@@ -139,6 +139,7 @@ class ShowPlaceActivity : AppCompatActivity() {
             review.markerId = id
             review.addReview(MainActivity.staticUserId.toString(), MainActivity.staticUserNickname, content, Date())
             //리뷰 등록
+            //리뷰 등록
             val db = FirebaseFirestore.getInstance()
             val docRef = db.collection("reviews").document(id)
             docRef.get()
@@ -186,48 +187,6 @@ class ShowPlaceActivity : AppCompatActivity() {
 
                             }
                     }
-                }
-        }
-        val bindingItemBinding = CommentItemBinding.inflate(layoutInflater)
-        bindingItemBinding.commentDeleteBtn.setOnClickListener{
-            //리뷰 삭제
-            Log.d("review", "리뷰삭제버튼 클릭")
-            Log.d("review", "${bindingItemBinding.commentUserId.text.toString().toInt()}")
-            val db = FirebaseFirestore.getInstance()
-            val docRef = db.collection("reviews").document(id)
-            docRef.get()
-                .addOnSuccessListener { document: DocumentSnapshot ->
-                    if(document != null && document.exists()){
-                        //기존에 문서가 존재하는 경우, 기존의 reviewList 가져옴
-                        val existingReviewList = document.data?.get("reviewList") as MutableList<KeyValueElement>
-                        //기존 reviewList에서 리뷰 삭제
-                        existingReviewList.removeAt(bindingItemBinding.commentUserId.text.toString().toInt())
-                        //firebase 문서 업데이트
-                        docRef.update("reviewList", existingReviewList)
-                            .addOnSuccessListener {
-                                Log.d("DB", "reviewList successfully updated in existing document!")
-                                binding.commentEditText.text.clear()
-                                Toast.makeText(this, "리뷰가 삭제되었습니다.", Toast.LENGTH_SHORT).show()
-
-                                //화면 새로고침, Firestore의 데이터 변경사항이 적용된 후에 갱신하기 위해 여기에 작성
-                                val intent = Intent(this, ShowPlaceActivity::class.java)
-                                intent.putExtra("document_Id", documentId)
-                                intent.putExtra("show_name", name)
-                                intent.putExtra("show_latitude", latitude.toDouble())
-                                intent.putExtra("show_longitude", longitude.toDouble())
-                                intent.putExtra("show_category", category)
-                                intent.putExtra("show_image", byteArray)
-                                intent.putExtra("show_star", star)
-                                intent.putExtra("show_id", id)
-                                intent.putExtra("show_author", authorName)
-                                startActivity(intent)
-                                finish()
-                            }
-                            .addOnFailureListener { e ->
-                                Log.d("DB", "Fail, can not updated exsisting reviewList", e)
-                                Toast.makeText(this, "Error, 리뷰가 삭제 않았습니다.", Toast.LENGTH_SHORT).show()
-                            }
-                    } else{ }
                 }
         }
 
@@ -344,7 +303,7 @@ class ShowPlaceActivity : AppCompatActivity() {
                     binding.commentsRecyclerView.layoutManager = layoutManager
                     Log.d("review", "ShowPlaceActivity: reviewList.toString: ${reviewList.toString()}")
                     Log.d("review", "ShowPlaceActivity: reviewList.size.toString: ${reviewList.size.toString()}")
-                    binding.commentsRecyclerView.adapter = MyAdapter(reviewList)
+                    binding.commentsRecyclerView.adapter = MyAdapter(this, reviewList)
                 } else{
                     Log.d("review", "ShowPlaceActivity: review list does not exist")
                 }
