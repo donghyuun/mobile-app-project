@@ -1,8 +1,6 @@
 package com.example.unknownmap
 
-import android.app.AlertDialog
 import android.content.ContentResolver
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -12,41 +10,39 @@ import android.location.Geocoder
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
 import android.widget.ImageView
-import android.widget.RelativeLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide
 import com.example.unknownmap.databinding.ActivityMainBinding
-import com.example.unknownmap.databinding.BalloonLayoutBinding
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.firestore
-import com.kakao.sdk.user.UserApiClient
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.storage
 import net.daum.mf.map.api.CalloutBalloonAdapter
-import net.daum.mf.map.api.CameraUpdate
 import net.daum.mf.map.api.MapPOIItem
 import net.daum.mf.map.api.MapPoint
 import net.daum.mf.map.api.MapView
-import net.daum.mf.map.api.MapView.CurrentLocationTrackingMode
 import okio.IOException
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+
+private data class BalloonView(
+    val category: TextView,
+    val name: TextView,
+    val address: TextView,
+    val image: ImageView
+)
 
 class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.MapViewEventListener, MapView.CurrentLocationEventListener {
 
@@ -100,7 +96,11 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             tag = star//평점, 최초등록자가 남김
             mapPoint = point
             customImageBitmap = uriToBitmap(contentResolver, uri)
-            userObject = id//마커의 unique id
+//            userObject = id//마커의 unique id
+            userObject = UserObjectData(
+                id = id,
+                imageUri = uri
+            )
         }
         when (categoryType) {
             0 -> {
@@ -193,7 +193,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         mapViewContainer.addView(mapView)
 
         // 커스텀 말풍선 설정
-        mapView.setCalloutBalloonAdapter(CustomBalloonAdapter(layoutInflater))
+        mapView.setCalloutBalloonAdapter(CustomBalloonAdapter(layoutInflater, this))
 
         //**********지도를 클릭시 해당 위치의 위/경도 좌표 출력*************
         mapView.setMapViewEventListener(object : MapView.MapViewEventListener {
@@ -223,8 +223,9 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                         val latitude = (document["gps"] as GeoPoint).latitude
                         val longitude = (document["gps"] as GeoPoint).longitude
                         val category = document.getLong("category")?.toInt() ?: 0
-                        val imageUri: Uri? = null
-                        val imageString: String? = null
+                        val imageString: String? = document.getString("imageString") ?: null
+                        val imageUri: Uri? = Uri.parse(imageString)
+                        Log.d("acac", imageUri.toString())
                         val id: String = document.id
                         val star: Int = document.getLong("star")?.toInt() ?: 0
                         mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category, star, id))
@@ -488,7 +489,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
     // 커스텀 말풍선 - binding으로 코드를 더 깔끔하게 수정할 수 있을 듯함
     // CustomBalloonAdapter 클래스 수정
-    class CustomBalloonAdapter(inflater: LayoutInflater): CalloutBalloonAdapter {
+    class CustomBalloonAdapter(inflater: LayoutInflater, private val activity: AppCompatActivity): CalloutBalloonAdapter {
         val mCalloutBalloon: View = inflater.inflate(R.layout.balloon_layout, null)
         val category: TextView = mCalloutBalloon.findViewById(R.id.ball_category)
         val name: TextView = mCalloutBalloon.findViewById(R.id.ball_tv_name)
@@ -506,12 +507,42 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 R.drawable.cigar -> "흡연장"
                 else -> "기타"
             }
+
+            val userObjectData = poiItem?.userObject as? UserObjectData
+            val uniqueId = userObjectData?.id
+
+            val storage = Firebase.storage
+            val storageReference = storage.reference
+
+            val storageRef: StorageReference = storageReference.child("images/${uniqueId}.jpg"  )
+
             name.text = poiItem?.itemName  // 해당 마커의 정보 이용 가능
-            image.setImageBitmap(poiItem?.customImageBitmap)
-            image.apply {
-                baselineAlignBottom = true
-                scaleType = ImageView.ScaleType.CENTER_CROP
+            storageRef.downloadUrl.addOnSuccessListener { uri ->
+                val balloonView = BalloonView(category, name, address, image)
+                val imageView = balloonView.image
+
+                Glide.with(imageView.context)
+                    .load(uri)
+                    .into(image)
+                Log.d("test2","1111 " + uri.toString())
+            }.addOnFailureListener { exception ->
+                val balloonView = BalloonView(category, name, address, image)
+                image.apply {
+                    setImageResource(R.drawable.ic_launcher_round)
+                    baselineAlignBottom = true
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+                    Log.d("test2", "2222 " )
+                }
             }
+
+
+//            image.setImageBitmap(poiItem?.customImageBitmap)
+//            image.apply {
+//                baselineAlignBottom = true
+//                scaleType = ImageView.ScaleType.CENTER_CROP
+//            }
+
+
             Log.d("window", "getCalloutBalloon run")
             return mCalloutBalloon
         }
@@ -551,6 +582,8 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         val collectionName = "sampleMarker"
         var documentId = ""  // Declare documentId here
         var authorName = "" // 마커 생성자 이름
+        var categoryType = ""
+
 
         db.collection(collectionName)
             .get()
@@ -567,6 +600,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                     // GPS 좌표를 비교하여 일치하는 문서를 찾음
                     if (latitude == poiItem?.mapPoint?.mapPointGeoCoord?.latitude && longitude == poiItem?.mapPoint?.mapPointGeoCoord?.longitude) {
                         documentId = document.id
+                        categoryType = (document["category"] as Long).toString()
                         Log.d("song", "Found document with ID: $documentId")
                         break
                     }
@@ -578,9 +612,10 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 Log.d("show_name", poiItem?.itemName.toString())
                 intent.putExtra("show_latitude", poiItem?.mapPoint?.mapPointGeoCoord?.latitude ?: 0.0)
                 intent.putExtra("show_longitude", poiItem?.mapPoint?.mapPointGeoCoord?.longitude ?: 0.0)
-                intent.putExtra("show_category", getCategoryType(poiItem?.markerType))
+//                intent.putExtra("show_category", getCategoryType(poiItem?.markerType))
+                intent.putExtra("show_category", categoryType)
                 intent.putExtra("show_star", poiItem?.tag)//추가된 것(점수
-                intent.putExtra("show_id", poiItem?.userObject.toString())//마커 id
+//                intent.putExtra("show_id", poiItem?.userObject.toString())//마커 id
                 intent.putExtra("show_author", authorName)//마커 생성자
 
                 // 이미지를 특정 크기로 조절하고 회전 정보 고려
@@ -595,7 +630,10 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 val byteArray = stream.toByteArray()
 
                 // Intent에 바이트 배열 추가
-                intent.putExtra("show_image", byteArray)
+//                intent.putExtra("show_image", byteArray)
+                val user = poiItem?.userObject as UserObjectData
+                intent.putExtra("show_id", user.id)
+                intent.putExtra("show_image", user.imageUri.toString())
 
                 // 생성된 Intent를 사용하여 다른 Activity 시작
                 resultLauncher.launch(intent)

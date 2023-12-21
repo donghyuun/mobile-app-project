@@ -32,6 +32,7 @@
             android:id="@+id/main_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" >
+
         <EditText
             android:id="@+id/search_bar"
             android:layout_width="220dp"
@@ -56,6 +57,7 @@
             android:layout_marginTop="25dp"
             android:textColor="@color/black"
             android:text="이동" />
+
 
         </LinearLayout>
 
