@@ -80,15 +80,17 @@
         android:layout_height="1dp"
         android:background="#D3D3D3"/>
 
-    <!--    <TextView-->
-    <!--        android:id="@+id/myPageUserToken"-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:text="User Token"-->
-    <!--        android:textSize="18sp"-->
-    <!--        android:textColor="#000000"-->
-    <!--        android:padding="8dp"-->
-    <!--        android:background="?android:attr/selectableItemBackground"/>-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/myPageUserToken"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="User Token"-->
+<!--        android:textSize="18sp"-->
+<!--        android:textColor="#000000"-->
+<!--        android:padding="8dp"-->
+<!--        android:background="?android:attr/selectableItemBackground"/>-->
+
 
     <Button
         android:id="@+id/logoutBtn"

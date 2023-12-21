@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.bumptech.glide.Glide
 import com.example.unknownmap.databinding.ActivityShowPlaceBinding
+import com.example.unknownmap.databinding.CommentItemBinding
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -53,6 +54,7 @@ class ShowPlaceActivity : AppCompatActivity() {
         }
         val imageUri = intent.getStringExtra("show_image") ?: ""
         val authorName = intent.getStringExtra("show_author") ?: ""
+        MainActivity.currentMarkerId = id//현재 마커 id를 MainActivity의 currentMarkerId에 저장
 
         //MainActivity의 static 변수에 저장된 유저 정보를 출력해본다
         Log.d("user", "in ShowPlaceActivity, ${MainActivity.staticUserId}")
@@ -141,6 +143,7 @@ class ShowPlaceActivity : AppCompatActivity() {
             review.markerId = id
             review.addReview(MainActivity.staticUserId.toString(), MainActivity.staticUserNickname, content, Date())
             //리뷰 등록
+            //리뷰 등록
             val db = FirebaseFirestore.getInstance()
             val docRef = db.collection("reviews").document(id)
             docRef.get()
@@ -191,7 +194,6 @@ class ShowPlaceActivity : AppCompatActivity() {
                     }
                 }
         }
-
 
         //*********************리뷰 삭제 버튼*********************//
         // 마커 작성자일때만 삭제 버튼 활성화
@@ -328,7 +330,7 @@ class ShowPlaceActivity : AppCompatActivity() {
                     binding.commentsRecyclerView.layoutManager = layoutManager
                     Log.d("review", "ShowPlaceActivity: reviewList.toString: ${reviewList.toString()}")
                     Log.d("review", "ShowPlaceActivity: reviewList.size.toString: ${reviewList.size.toString()}")
-                    binding.commentsRecyclerView.adapter = MyAdapter(reviewList)
+                    binding.commentsRecyclerView.adapter = MyAdapter(this, reviewList)
                 } else{
                     Log.d("review", "ShowPlaceActivity: review list does not exist")
                 }

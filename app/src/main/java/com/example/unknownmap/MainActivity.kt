@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         var staticUserEmail: String = ""
         var staticUserNickname: String = ""
         var staticUserToken: String = ""
+        var currentMarkerId: String = ""//현재 내가 클릭한 마커의 id
     }
     //----------------------------------------------//
 
@@ -461,8 +462,14 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         }
         // 주소 검색 이동
         binding.submitButton.setOnClickListener {
+            if(binding.searchBar.text.toString().isEmpty()) {
+                Toast.makeText(this, "검색어를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener  // 검색어가 비어있을 경우 함수 종료
+            }
             val address = binding.searchBar.text.toString()
             Log.d("location_map", "address: $address")
+            Log.d("location_map", "typeof address: ${address::class.java}")
+
             val geocoder = Geocoder(this)
             val addresses = geocoder.getFromLocationName(address, 1)
 

@@ -32,30 +32,32 @@
             android:id="@+id/main_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" >
-            <EditText
-                android:id="@+id/search_bar"
-                android:layout_width="220dp"
-                android:layout_height="50dp"
-                android:layout_marginLeft="25dp"
-                android:layout_marginTop="25dp"
-                android:layout_marginRight="15dp"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/corner_round"
-                android:backgroundTint="@color/gainsboro"
-                android:elevation="4dp"
-                android:textColor="@color/black"
-                android:hint="장소 또는 주소 검색"
-                android:paddingStart="10dp"
-                android:textColorHint="#727272" />
 
-            <Button
-                android:id="@+id/submit_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_toRightOf="@id/search_bar"
-                android:layout_marginTop="25dp"
-                android:textColor="@color/black"
-                android:text="이동" />
+        <EditText
+            android:id="@+id/search_bar"
+            android:layout_width="220dp"
+            android:layout_height="50dp"
+            android:layout_marginLeft="25dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginRight="15dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/corner_round"
+            android:backgroundTint="@color/gainsboro"
+            android:elevation="4dp"
+            android:textColor="@color/black"
+            android:hint="장소 또는 주소 검색"
+            android:paddingStart="10dp"
+            android:textColorHint="#727272" />
+
+        <Button
+            android:id="@+id/submit_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/search_bar"
+            android:layout_marginTop="25dp"
+            android:textColor="@color/black"
+            android:text="이동" />
+
 
         </LinearLayout>
 
