@@ -19,6 +19,7 @@ import com.example.unknownmap.databinding.ActivityMainBinding
 import com.example.unknownmap.databinding.ActivitySetPlaceBinding
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.storage.FirebaseStorage
 import net.daum.mf.map.api.MapPOIItem
 import net.daum.mf.map.api.MapPoint
 import net.daum.mf.map.api.MapReverseGeoCoder
@@ -36,6 +37,7 @@ class SetPlaceActivity : AppCompatActivity() {
 
     // firestore 설정
     var firestore: FirebaseFirestore? = null
+    var storage: FirebaseStorage? = null
 
     // 사진 업로드를 위한 Activity에서 결과 가져오기
     private lateinit var resultLauncher: ActivityResultLauncher<Intent>
@@ -56,6 +58,7 @@ class SetPlaceActivity : AppCompatActivity() {
 
         // firestore 설정
         firestore = FirebaseFirestore.getInstance()
+        storage = FirebaseStorage.getInstance()
 
         fun setAddress(address: String) {
             binding.placeAddress.setText(address)
@@ -264,12 +267,6 @@ class SetPlaceActivity : AppCompatActivity() {
 
         // 등록 버튼 리스너 ***Marker 클래스에 넣을 값들을 intent로 MainActivity로 넘겨줌***
         binding.setPlaceSetBtn.setOnClickListener {
-            // Show progress message
-            val progressDialog = ProgressDialog(this@SetPlaceActivity)
-            progressDialog.setMessage("마커를 등록 중입니다.")
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
-            progressDialog.setCancelable(false)
-            progressDialog.show()
 
             val currentTime = System.currentTimeMillis()
             var lastSetTime = intent.getLongExtra("last_set_time", 0)
@@ -282,6 +279,14 @@ class SetPlaceActivity : AppCompatActivity() {
             // 밀리초 단위
             val limitTime = 60000
             // 마지막 등록 시간으로부터 지난 시간이 1분 이하면 등록 안 됨 (수정 가능)
+
+            // Show progress message
+            val progressDialog = ProgressDialog(this@SetPlaceActivity)
+            progressDialog.setMessage("마커를 등록 중입니다.")
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
+            progressDialog.setCancelable(false)
+            progressDialog.show()
+
             if (leftTime in 1..limitTime) {
                 val sec = (leftTime) / 1000
                 Toast.makeText(this, "${limitTime / 1000 - sec}초 후에 등록이 가능해요.", Toast.LENGTH_SHORT).show()
@@ -306,6 +311,7 @@ class SetPlaceActivity : AppCompatActivity() {
                 intent.putExtra("author", MainActivity.staticUserNickname)
                 // uri는 String으로 변환해서 intent로 넘기고, 받을 때 다시 parse 해야 함
 
+                /*
                 setResult(RESULT_OK, intent)
 
                 // FireStore 에 저장
@@ -335,9 +341,99 @@ class SetPlaceActivity : AppCompatActivity() {
                     "kim",
                     "$latitude, $longitude, $name, $currentSelectedNum transferred to MainActivity"
                 )
+                   */
 
-                progressDialog.dismiss()
-                finish()//스택에 쌓인 직전 엑티비티(=MainActivity)로 이동
+                if (uri != null) {
+                    val storageRef = storage!!.getReference().child("images/${uniqueId}.jpg")
+                    val uploadTask = storageRef.putFile(uri!!)
+
+                    uploadTask.addOnProgressListener { taskSnapshot ->
+                        val progress =
+                            (100.0 * taskSnapshot.bytesTransferred) / taskSnapshot.totalByteCount
+                        progressDialog.progress = progress.toInt()
+                        Log.d("upload_image", "Upload is $progress% done")
+                    }.addOnPausedListener {
+                        Log.d("upload_image", "Upload is paused")
+
+                    }
+
+                    uploadTask.addOnSuccessListener { taskSnapshot ->
+                        storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                            // 이미지의 다운로드 URL을 Firestore에 저장
+                            firestore?.collection("sampleMarker")?.document(uniqueId)
+                                ?.update("imageString", downloadUri.toString())
+
+                            // Intent에 이미지의 URL 추가
+                            intent.putExtra("image", downloadUri.toString())
+                            setResult(RESULT_OK, intent)
+
+                            val marker = Marker(
+                                id = uniqueId,
+                                name = name,
+                                gps = GeoPoint(latitude, longitude),
+                                category = currentSelectedNum,
+                                imageString = downloadUri.toString(),
+                                imageUri = downloadUri,
+                                star = currentScore
+                            )
+
+                            firestore?.collection("sampleMarker")?.document(uniqueId)?.set(marker)
+                                ?.addOnSuccessListener {
+                                    progressDialog.dismiss() // Dismiss progress dialog
+                                    finish()
+                                }
+                                ?.addOnFailureListener { e ->
+                                    progressDialog.dismiss() // Dismiss progress dialog
+                                    Log.e("kim", "Error Marker Written: ${e.message}", e)
+                                }
+
+                            Log.d(
+                                "kim",
+                                "$latitude, $longitude, $name, $currentSelectedNum transferred to MainActivity"
+                            )
+                        }
+                    }.addOnFailureListener { e ->
+                        progressDialog.dismiss()
+                        Log.e("kim", "Error uploading image: ${e.message}", e)
+                    }
+                } else {
+                    // 이미지가 없을 경우의 처리
+                    intent.putExtra("image", uri.toString())
+                    setResult(RESULT_OK, intent)
+
+                    val marker = Marker(
+                        id = uniqueId,
+                        name = name,
+                        gps = GeoPoint(latitude, longitude),
+                        category = currentSelectedNum,
+                        imageString = uri.toString(),
+                        imageUri = uri,
+                        star = currentScore
+                    )
+
+                    firestore?.collection("sampleMarker")
+                        ?.document(uniqueId)
+                        ?.set(marker)
+                        ?.addOnSuccessListener {
+                            progressDialog.dismiss()
+                            finish()
+                        }
+                        ?.addOnFailureListener { e ->
+                            progressDialog.dismiss()
+                            Log.e("kim", "Error Marker Written: ${e.message}", e)
+                        }
+
+                    Log.d(
+                        "kim",
+                        "$latitude, $longitude, $name, $currentSelectedNum transferred to MainActivity"
+                    )
+
+                    finish()
+
+                }
+//
+//                progressDialog.dismiss()
+//                finish()//스택에 쌓인 직전 엑티비티(=MainActivity)로 이동
             }
         }
 
