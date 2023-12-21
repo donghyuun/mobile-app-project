@@ -13,11 +13,14 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.bumptech.glide.Glide
 import com.example.unknownmap.databinding.ActivityShowPlaceBinding
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.storage
 import java.util.Date
 
 class ShowPlaceActivity : AppCompatActivity() {
@@ -37,7 +40,7 @@ class ShowPlaceActivity : AppCompatActivity() {
         val name = intent.getStringExtra("show_name") ?: ""
         val latitude = String.format("%.2f", intent.getDoubleExtra("show_latitude", 0.0))
         val longitude = String.format("%.2f", intent.getDoubleExtra("show_longitude", 0.0))
-        val category = intent.getIntExtra("show_category", 0)
+        val category = intent.getStringExtra("show_category") ?: "0"
         val byteArray = intent.getByteArrayExtra("show_image")
         val star = intent.getIntExtra("show_star", 0)
         val id = intent.getStringExtra("show_id") ?: ""
@@ -48,6 +51,7 @@ class ShowPlaceActivity : AppCompatActivity() {
         } else {
             null
         }
+        val imageUri = intent.getStringExtra("show_image") ?: ""
         val authorName = intent.getStringExtra("show_author") ?: ""
 
         //MainActivity의 static 변수에 저장된 유저 정보를 출력해본다
@@ -160,7 +164,8 @@ class ShowPlaceActivity : AppCompatActivity() {
                                 intent.putExtra("show_latitude", latitude.toDouble())
                                 intent.putExtra("show_longitude", longitude.toDouble())
                                 intent.putExtra("show_category", category)
-                                intent.putExtra("show_image", byteArray)
+                                // intent.putExtra("show_image", byteArray)
+                                intent.putExtra("show_image", imageUri)
                                 intent.putExtra("show_star", star)
                                 intent.putExtra("show_id", id)
                                 intent.putExtra("show_author", authorName)
@@ -281,7 +286,29 @@ class ShowPlaceActivity : AppCompatActivity() {
         nameTextView.text = name
         locationTextView.text = "위도: $latitude\n경도: $longitude"
         categoryTextView.text = getCategoryString(category)
-        imageView.setImageBitmap(imageBitmap)
+//        imageView.setImageBitmap(imageBitmap)
+        //
+
+
+        val storage = Firebase.storage
+        val storageReference = storage.reference
+
+        val storageRef: StorageReference = storageReference.child("images/${id}.jpg"  )
+
+        storageRef.downloadUrl.addOnSuccessListener { uri ->
+            Glide.with(imageView.context)
+                .load(uri)
+                .into(imageView)
+            Log.d("test2","1111 " + uri.toString())
+        }.addOnFailureListener { exception ->
+            imageView.apply {
+                setImageResource(R.drawable.ic_launcher_round)
+                baselineAlignBottom = true
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                Log.d("test2", "2222 " )
+            }
+        }
+
 
 
         //********************리뷰 가져와서 저장하기 위한 변수********************//
@@ -387,11 +414,15 @@ class ShowPlaceActivity : AppCompatActivity() {
         setResult(11)
     }
 
-    private fun getCategoryString(category: Int): String {
+    private fun getCategoryString(category: String): String {
+        val category = category.toInt()
         return when (category) {
             0 -> "쓰레기통"
             1 -> "자판기"
             2 -> "붕어빵"
+            3 -> "의류 수거함"
+            4 -> "철봉"
+            5 -> "흡연장"
             else -> "기타"
         }
     }

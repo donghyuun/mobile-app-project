@@ -4,31 +4,21 @@ import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.view.MenuItem
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.widget.Toolbar
-import com.example.unknownmap.databinding.ActivityMainBinding
+import androidx.appcompat.app.AppCompatActivity
 import com.example.unknownmap.databinding.ActivitySetPlaceBinding
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.storage.FirebaseStorage
-import net.daum.mf.map.api.MapPOIItem
 import net.daum.mf.map.api.MapPoint
 import net.daum.mf.map.api.MapReverseGeoCoder
-import net.daum.mf.map.api.MapView
-import okhttp3.Address
-import java.net.URI
-import java.text.SimpleDateFormat
-import java.time.LocalDateTime
-import java.util.Collections
 import java.util.UUID
 
 //***********************장소 등록 버튼 눌렀을때 보이는 액티비티***********************//
@@ -277,7 +267,7 @@ class SetPlaceActivity : AppCompatActivity() {
 
             val leftTime = currentTime - lastSetTime
             // 밀리초 단위
-            val limitTime = 60000
+            val limitTime = 60
             // 마지막 등록 시간으로부터 지난 시간이 1분 이하면 등록 안 됨 (수정 가능)
 
             // Show progress message

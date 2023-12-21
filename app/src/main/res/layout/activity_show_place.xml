@@ -61,11 +61,11 @@
         android:id="@+id/show_category_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textColor="#727272"
         android:layout_below="@id/show_location_textView"
+        android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"
-        android:layout_centerHorizontal="true"/>
+        android:textColor="#727272"
+        android:textSize="16sp" />
 
     <ImageView
         android:id="@+id/show_imageView"
