@@ -71,7 +71,7 @@
                         binding.commentDeleteBtn.visibility = ViewGroup.VISIBLE
                     }
                     else{
-                        binding.commentDeleteBtn.visibility = ViewGroup.GONE
+                        binding.commentDeleteBtn.visibility = ViewGroup.INVISIBLE
                     }
                     binding.commentNumberId.visibility = ViewGroup.GONE
                     binding.commentDeleteBtn.setOnClickListener{

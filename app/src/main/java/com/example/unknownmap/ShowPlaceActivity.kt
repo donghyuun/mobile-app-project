@@ -38,6 +38,7 @@ class ShowPlaceActivity : AppCompatActivity() {
         // Intent에서 데이터를 추출
         val token = intent.getStringExtra("token") ?:""
         val documentId=intent.getStringExtra("document_Id") ?:"" ///문서 id 받는 val documentId추가
+        Log.d("documentId", "${documentId}")
         val name = intent.getStringExtra("show_name") ?: ""
         val latitude = String.format("%.2f", intent.getDoubleExtra("show_latitude", 0.0))
         val longitude = String.format("%.2f", intent.getDoubleExtra("show_longitude", 0.0))
@@ -80,7 +81,7 @@ class ShowPlaceActivity : AppCompatActivity() {
                 //입력창 내용 가져오기
                 star.addStar(id)
                 Log.d("star", "markerId: ${id}")
-                //리뷰 등록
+                //즐겨찾기 등록
                 val db = FirebaseFirestore.getInstance()
                 val docRef = db.collection("stars").document(MainActivity.staticUserId.toString())
                 docRef.get()
@@ -120,7 +121,7 @@ class ShowPlaceActivity : AppCompatActivity() {
                 binding.heartButton.setImageResource(R.drawable.blank_heart)
                 // db의 해당 회원의 즐겨찾기 리스트에서 해당 마커 id를 제거함
                 star.starList.remove(id)
-                // 리뷰 등록
+                // 즐겨찾기 등록
                 val db = FirebaseFirestore.getInstance()
                 val docRef = db.collection("stars").document(MainActivity.staticUserId.toString())
                 docRef.update("starList", star.starList)
@@ -142,7 +143,6 @@ class ShowPlaceActivity : AppCompatActivity() {
             val review = Review()
             review.markerId = id
             review.addReview(MainActivity.staticUserId.toString(), MainActivity.staticUserNickname, content, Date())
-            //리뷰 등록
             //리뷰 등록
             val db = FirebaseFirestore.getInstance()
             val docRef = db.collection("reviews").document(id)
@@ -200,7 +200,7 @@ class ShowPlaceActivity : AppCompatActivity() {
         if(authorName == MainActivity.staticUserNickname) {
             binding.removeButton.visibility = ViewGroup.VISIBLE
         }else{
-            binding.removeButton.visibility = ViewGroup.GONE
+            binding.removeButton.visibility = ViewGroup.INVISIBLE
         }
 
         binding.removeButton.setOnClickListener{
