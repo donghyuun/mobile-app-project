@@ -20,3 +20,4 @@ data class ReviewData(
     val userNickName: String? = null,
     val userId: String? = null
 )
+
