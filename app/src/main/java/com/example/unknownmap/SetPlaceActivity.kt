@@ -319,6 +319,7 @@ class SetPlaceActivity : AppCompatActivity() {
                         Log.d("upload_image", "Upload is $progress% done")
                     }.addOnPausedListener {
                         Log.d("upload_image", "Upload is paused")
+
                     }
 
                     uploadTask.addOnSuccessListener { taskSnapshot ->

@@ -2,6 +2,7 @@ package com.example.unknownmap
 
 import android.content.ContentResolver
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -12,6 +13,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -22,7 +24,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.RecyclerView
+import androidx.core.app.ActivityCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.Registry
 import com.bumptech.glide.annotation.GlideModule
@@ -33,6 +35,7 @@ import com.bumptech.glide.load.model.stream.*
 import com.bumptech.glide.module.AppGlideModule
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+
 import com.example.unknownmap.databinding.ActivityMainBinding
 import com.google.firebase.database.core.Context
 import com.google.firebase.firestore.FirebaseFirestore
@@ -156,6 +159,15 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         val view = binding.root
         setContentView(view)
 
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            || ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            var permissions = arrayOf(
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+            ActivityCompat.requestPermissions(this, permissions, 101)
+        }
+
         // Intent를 받아옴
         val intent = intent
 
@@ -221,7 +233,9 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                         val imageUri = Uri.parse(imageString)
                         val id: String = document.getString("id") ?: ""
                         val star: Int = document.getLong("star")?.toInt() ?: 0
+
                         mapView.addPOIItem(createMarker(name, latitude, longitude, imageString, category, star, id))
+
                     }
                     currentPOIItems = mapView.poiItems
                     // Now you have the most up-to-date list of items
@@ -478,13 +492,13 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             }
 
             address.text = "getCalloutBalloon"
+
             Log.d("window", "getCalloutBalloon run")
             return mCalloutBalloon
         }
 
         override fun getPressedCalloutBalloon(poiItem: MapPOIItem?): View {
             // 말풍선 클릭 시
-            address.text = "getPressedCalloutBalloon"
             Log.d("window", "getPressedCalloutBalloon run")
 
             return mCalloutBalloon
@@ -531,6 +545,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
 
         val collectionName = "sampleMarker"
         var documentId = ""  // Declare documentId here
+        var authorName = "" // 마커 생성자 이름
 
 
         db.collection(collectionName)
@@ -543,6 +558,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                     Log.d("song", "Longitude from database: $longitude")
                     Log.d("song", "Latitude from poiItem: ${poiItem?.mapPoint?.mapPointGeoCoord?.latitude}")
                     Log.d("song", "Longitude from poiItem: ${poiItem?.mapPoint?.mapPointGeoCoord?.longitude}")
+                    authorName = document.getString("author") ?: ""//마커 생성자
 
                     // GPS 좌표를 비교하여 일치하는 문서를 찾음
                     if (latitude == poiItem?.mapPoint?.mapPointGeoCoord?.latitude && longitude == poiItem?.mapPoint?.mapPointGeoCoord?.longitude) {
@@ -561,6 +577,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 intent.putExtra("show_category", getCategoryType(poiItem?.markerType))
                 intent.putExtra("show_star", poiItem?.tag)//추가된 것(점수
                 intent.putExtra("show_id", poiItem?.userObject.toString())//마커 id
+                intent.putExtra("show_author", authorName)//마커 생성자
 
                 // 이미지를 특정 크기로 조절하고 회전 정보 고려
                 val scaledAndRotatedBitmap = rotateBitmap(

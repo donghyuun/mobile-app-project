@@ -2,17 +2,49 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/loginView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".LoginActivity"
-    android:gravity="center">
+    android:gravity="center"
+    android:orientation="vertical"
+    android:visibility="gone" >
+<!--    visibility gone을 해제하고 디자인 수정할 것-->
 
-    <ImageButton
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_launcher_round"/>
+
+    <TextView
+        android:layout_marginTop="30dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:text="지도외전"/>
+
+    <TextView
+        android:layout_marginTop="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15sp"
+        android:textStyle=""
+        android:text="지도 바깥의 이야기를 전하다"/>
+
+
+    <TextView
+        android:layout_marginTop="170dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:text="먼저 로그인 해주세요!"/>
+
+    <ImageView
+        android:layout_marginTop="15dp"
         android:id="@+id/loginBtnKakao"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/kakao_login_medium_wide"
-        />
-
+        android:src="@drawable/kakao_login_medium_wide" />
 
 </LinearLayout>

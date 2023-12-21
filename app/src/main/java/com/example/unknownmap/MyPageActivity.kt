@@ -29,11 +29,6 @@ class MyPageActivity : AppCompatActivity() {
         binding.logoutBtn.setOnClickListener{
             kakaoLogout()
         }
-        //홈버튼
-        binding.mainHomeBtn.setOnClickListener{
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-        }
     }
 
     // KAKAO 로그인 코드 start
