@@ -54,6 +54,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         var staticUserEmail: String = ""
         var staticUserNickname: String = ""
         var staticUserToken: String = ""
+        var currentMarkerId: String = ""//현재 내가 클릭한 마커의 id
     }
     //----------------------------------------------//
 
