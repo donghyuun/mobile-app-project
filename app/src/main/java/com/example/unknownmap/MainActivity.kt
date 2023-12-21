@@ -22,6 +22,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.Registry
 import com.bumptech.glide.annotation.GlideModule
@@ -51,6 +52,13 @@ import java.io.ByteArrayOutputStream
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.ktx.storage
+
+private data class BalloonView(
+    val category: TextView,
+    val name: TextView,
+    val address: TextView,
+    val image: ImageView
+)
 
 
 class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.MapViewEventListener, MapView.CurrentLocationEventListener {
@@ -450,12 +458,17 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             Log.d("test2", poiItem?.itemName.toString() + " id: " + uniqueId.toString())
 
             val storageRef: StorageReference = storageReference.child("images/${uniqueId}.jpg")
+
             storageRef.downloadUrl.addOnSuccessListener { uri ->
-                Glide.with(image.context)
+                val balloonView = BalloonView(category, name, address, image)
+                val imageView = balloonView.image
+
+                Glide.with(imageView.context)
                     .load(uri)
                     .into(image)
                 Log.d("test2","1111 " + uri.toString())
             }.addOnFailureListener { exception ->
+                val balloonView = BalloonView(category, name, address, image)
                 image.apply {
                     setImageResource(R.drawable.nothing)
                     baselineAlignBottom = true
