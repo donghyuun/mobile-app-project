@@ -7,6 +7,7 @@
     android:orientation="vertical"
     android:padding="16dp"
     android:background="@android:color/white"
+    android:gravity="center_horizontal"
     tools:context=".MainActivity">
 
     <RelativeLayout
@@ -26,6 +27,13 @@
 
     </RelativeLayout>
 
+    <ImageView
+        android:src="@drawable/user_icon"
+        android:layout_marginTop="100dp"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_marginBottom="20dp"/>
+
     <TextView
         android:id="@+id/myPageUserId"
         android:layout_width="match_parent"
@@ -34,6 +42,7 @@
         android:textSize="18sp"
         android:textColor="#000000"
         android:padding="8dp"
+        android:layout_marginTop="30dp"
         android:background="?android:attr/selectableItemBackground"/>
 
     <View
@@ -71,15 +80,15 @@
         android:layout_height="1dp"
         android:background="#D3D3D3"/>
 
-    <TextView
-        android:id="@+id/myPageUserToken"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="User Token"
-        android:textSize="18sp"
-        android:textColor="#000000"
-        android:padding="8dp"
-        android:background="?android:attr/selectableItemBackground"/>
+    <!--    <TextView-->
+    <!--        android:id="@+id/myPageUserToken"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:text="User Token"-->
+    <!--        android:textSize="18sp"-->
+    <!--        android:textColor="#000000"-->
+    <!--        android:padding="8dp"-->
+    <!--        android:background="?android:attr/selectableItemBackground"/>-->
 
     <Button
         android:id="@+id/logoutBtn"
@@ -87,7 +96,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:elevation="4dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="100dp"
         android:text="로그아웃"
         android:textSize="17dp"
         android:textStyle="bold" />
