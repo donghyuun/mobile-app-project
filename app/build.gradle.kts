@@ -43,10 +43,6 @@ android {
     }
 }
 
-apply {
-    plugin("com.google.gms.google-services")
-}
-
 dependencies {
 
     implementation("androidx.core:core-ktx:1.9.0")
@@ -56,7 +52,6 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation(files("libs\\libDaumMapAndroid.jar"))
     implementation("com.google.firebase:firebase-firestore-ktx:24.9.1")
-    implementation("com.google.firebase:firebase-storage-ktx:20.3.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -65,17 +60,8 @@ dependencies {
     implementation ("com.kakao.sdk:v2-user:2.17.0") // 카카오 로그인
 
     // firestore
-    implementation(platform("com.google.firebase:firebase-bom:32.6.0"))
+    implementation(platform("com.google.firebase:firebase-bom:32.5.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-database-ktx")
     implementation("com.google.firebase:firebase-firestore:24.9.1")
-    implementation("com.github.bumptech.glide:glide:4.12.0")
-//    kapt("com.github.bumptech.glide:compiler:4.12.0")
-    annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
-//    implementation("com.firebaseui:firebase-ui-storage:4.3.2")
-    implementation("com.google.firebase:firebase-storage")
-    implementation("com.google.firebase:firebase-storage:20.3.0")
-    implementation("com.google.firebase:firebase-core:21.1.1")
-    implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("com.google.firebase:firebase-storage-ktx:20.3.0")
 }

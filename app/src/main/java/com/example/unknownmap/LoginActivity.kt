@@ -162,7 +162,6 @@ class LoginActivity : AppCompatActivity() {
                 } else if (token != null) {
                     Log.i("LOGIN", "카카오톡으로 로그인 성공 ${token.accessToken}")
                     //로그인 성공한 사용자의 정보 요청
-
                     UserApiClient.instance.me { user, error ->
                         if (error != null) {
                             Log.e("LOGIN", "사용자 정보 요청 실패", error)
