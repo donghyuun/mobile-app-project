@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.location.Geocoder
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
@@ -456,6 +457,25 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             mapView.removeAllPOIItems()
             starOff()
             loadDB()
+        }
+        // 주소 검색 이동
+        binding.submitButton.setOnClickListener {
+            val address = binding.searchBar.text.toString()
+            Log.d("location_map", "address: $address")
+            val geocoder = Geocoder(this)
+            val addresses = geocoder.getFromLocationName(address, 1)
+
+            if (!addresses.isNullOrEmpty()) {
+                val latitude = addresses[0].latitude
+                val longitude = addresses[0].longitude
+
+                Log.d("location_map", "location success")
+                Log.d("location_map", "$latitude , $longitude")
+                val mapPoint = MapPoint.mapPointWithGeoCoord(latitude, longitude)
+                mapView.setMapCenterPoint(mapPoint, true)
+            } else {
+                Log.d("location_map", "location fail")
+            }
         }
     }
 

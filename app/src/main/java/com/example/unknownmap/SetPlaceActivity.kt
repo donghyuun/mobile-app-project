@@ -1,5 +1,6 @@
 package com.example.unknownmap
 
+import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -263,6 +264,13 @@ class SetPlaceActivity : AppCompatActivity() {
 
         // 등록 버튼 리스너 ***Marker 클래스에 넣을 값들을 intent로 MainActivity로 넘겨줌***
         binding.setPlaceSetBtn.setOnClickListener {
+            // Show progress message
+            val progressDialog = ProgressDialog(this@SetPlaceActivity)
+            progressDialog.setMessage("마커를 등록 중입니다.")
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
+            progressDialog.setCancelable(false)
+            progressDialog.show()
+
             val currentTime = System.currentTimeMillis()
             var lastSetTime = intent.getLongExtra("last_set_time", 0)
             // 마지막 등록 시간의 기본 값(없을 때)은 현재 시간
@@ -328,6 +336,7 @@ class SetPlaceActivity : AppCompatActivity() {
                     "$latitude, $longitude, $name, $currentSelectedNum transferred to MainActivity"
                 )
 
+                progressDialog.dismiss()
                 finish()//스택에 쌓인 직전 엑티비티(=MainActivity)로 이동
             }
         }
