@@ -38,10 +38,12 @@ class ShowPlaceActivity : AppCompatActivity() {
         val latitude = String.format("%.2f", intent.getDoubleExtra("show_latitude", 0.0))
         val longitude = String.format("%.2f", intent.getDoubleExtra("show_longitude", 0.0))
         val category = intent.getIntExtra("show_category", 0)
-        val byteArray = intent.getByteArrayExtra("show_image")
-        val star = intent.getIntExtra("show_star", 0)
+
+        val byteArray = intent.getByteArrayExtra("show_image") ?: null
+        val star = intent.getIntExtra("show_star", 0) ?: ""
         val id = intent.getStringExtra("show_id") ?: ""
-        val markerId = intent.getStringExtra("show_markerId") ?: ""//마커 id 추출
+        Log.d("star", star.toString()) ?: ""
+
         val imageBitmap = if (byteArray != null) {
             // 바이트 배열을 Bitmap으로 변환
             BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
@@ -395,5 +397,4 @@ class ShowPlaceActivity : AppCompatActivity() {
             else -> "기타"
         }
     }
-
 }

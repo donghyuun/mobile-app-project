@@ -1,13 +1,13 @@
 package com.example.unknownmap
 
-import android.app.AlertDialog
 import android.content.ContentResolver
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.graphics.drawable.Drawable
+import android.location.Geocoder
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
@@ -18,24 +18,31 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
 import android.widget.ImageView
-import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+
+import com.bumptech.glide.Glide
+import com.bumptech.glide.Registry
+import com.bumptech.glide.annotation.GlideModule
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.load.model.stream.*
+import com.bumptech.glide.module.AppGlideModule
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
+
 import com.example.unknownmap.databinding.ActivityMainBinding
-import com.example.unknownmap.databinding.BalloonLayoutBinding
-import com.google.firebase.Firebase
+import com.google.firebase.database.core.Context
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.firestore
-import com.kakao.sdk.user.UserApiClient
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.storage.StorageReference
 import net.daum.mf.map.api.CalloutBalloonAdapter
 import net.daum.mf.map.api.CameraUpdate
 import net.daum.mf.map.api.MapPOIItem
@@ -45,6 +52,10 @@ import net.daum.mf.map.api.MapView.CurrentLocationTrackingMode
 import okio.IOException
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.ktx.storage
+
 
 class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.MapViewEventListener, MapView.CurrentLocationEventListener {
 
@@ -64,8 +75,9 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
     lateinit var currentPOIItems: Array<MapPOIItem>
 
     // firestore 데이터를 가져오기 위한 객체
-    var firestore : FirebaseFirestore? = null
+    // var firestore : FirebaseFirestore? = null
     val db = Firebase.firestore
+    // val storage = Firebase.storage
 
     // setPlaceActivity의 결과를 가져오기 위한 객체
     private lateinit var resultLauncher : ActivityResultLauncher<Intent>
@@ -87,7 +99,9 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
     private var currentTagsNum = 0  // 생성된 마커의 개수
 
     // Marker 생성 함수
-    fun createMarker(name: String?, latitude:Double, longtitude:Double, uri: Uri?, categoryType: Int?, star: Int, id: String) : MapPOIItem {
+
+    fun createMarker(name: String?, latitude:Double, longtitude:Double, imageUriString: String?, categoryType: Int?, star: Int, id: String) : MapPOIItem {
+
         val point = MapPoint.mapPointWithGeoCoord(latitude, longtitude)
         val marker = MapPOIItem()
         val contentResolver = contentResolver
@@ -96,8 +110,11 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             itemName = name
             tag = star//평점, 최초등록자가 남김
             mapPoint = point
-            customImageBitmap = uriToBitmap(contentResolver, uri)
-            userObject = id//마커의 unique id
+            customImageBitmap = imageUriString?.let { uriToBitmap(contentResolver, Uri.parse(it)) }
+            userObject = UserObjectData(
+                id = id,
+                imageUrl = imageUriString ?: ""
+            )
         }
         when (categoryType) {
             0 -> {
@@ -125,21 +142,6 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 marker.customImageResourceId = R.drawable.cigar
             }
         }
-
-        /*
-        when (categoryType) {
-            // 추후 마커 커스텀 이미지로 설정할 것!
-            0 -> marker.markerType = MapPOIItem.MarkerType.CustomImage // 쓰레기통
-            1 -> marker.markerType = MapPOIItem.MarkerType.CustomImage // 자판기
-            2 -> marker.markerType = MapPOIItem.MarkerType.CustomImage // 붕어빵
-        }
-
-        when (categoryType) {
-            0 -> marker.customImageResourceId = R.drawable.trash_bin // 쓰레기통 이미지 리소스
-            1 -> marker.customImageResourceId = R.drawable.vending_machine // 자판기 이미지 리소스
-            2 -> marker.customImageResourceId = R.drawable.fish // 붕어빵 이미지 리소스
-        }
-        */
 
         return marker//마커 반환
     }
@@ -190,7 +192,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         mapViewContainer.addView(mapView)
 
         // 커스텀 말풍선 설정
-        mapView.setCalloutBalloonAdapter(CustomBalloonAdapter(layoutInflater))
+        mapView.setCalloutBalloonAdapter(CustomBalloonAdapter(layoutInflater, this))
 
         //**********지도를 클릭시 해당 위치의 위/경도 좌표 출력*************
         mapView.setMapViewEventListener(object : MapView.MapViewEventListener {
@@ -220,12 +222,13 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                         val latitude = (document["gps"] as GeoPoint).latitude
                         val longitude = (document["gps"] as GeoPoint).longitude
                         val category = document.getLong("category")?.toInt() ?: 0
-                        val imageUri: Uri? = null
-                        val imageString: String? = null
-                        val id: String = document.id
+                        val imageString = document.getString("imageString") ?: ""
+                        val imageUri = Uri.parse(imageString)
+                        val id: String = document.getString("id") ?: ""
                         val star: Int = document.getLong("star")?.toInt() ?: 0
-                        mapView.addPOIItem(createMarker(name, latitude, longitude, imageUri, category, star, id))
-                        Log.d("test", id)
+
+                        mapView.addPOIItem(createMarker(name, latitude, longitude, imageString, category, star, id))
+
                     }
                     currentPOIItems = mapView.poiItems
                     // Now you have the most up-to-date list of items
@@ -240,21 +243,22 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             ActivityResultContracts.StartActivityForResult()){ result ->
             // SetPlaceActivity에서 등록 성공하여 돌아온다면
             if (result.resultCode == RESULT_OK) {
-
-                val name = result.data?.getStringExtra("set_name") ?: ""
-                val latitude = result.data?.getDoubleExtra("set_latitude", 0.0)
-                val longitude = result.data?.getDoubleExtra("set_longitude", 0.0)
-                val category = result.data?.getIntExtra("categoryNum", 0)
-                val imageString = result.data?.getStringExtra("image")
-                val imageUri = Uri.parse(imageString)
-                var nullableStar = result.data?.getIntExtra("star", 0)
-                var star = nullableStar ?: 0
-
-                val id = result.data?.getStringExtra("id") ?: ""
-                lastSetTime = result.data?.getLongExtra("last_set_time", 0)
-
-                Log.d("kim", "got name : ${name}, got lat :${latitude}, got lon : ${longitude}")
-                mapView.addPOIItem(createMarker(name, latitude!!, longitude!!, imageUri, category, star, id))
+//
+//                val name = result.data?.getStringExtra("set_name") ?: ""
+//                val latitude = result.data?.getDoubleExtra("set_latitude", 0.0)
+//                val longitude = result.data?.getDoubleExtra("set_longitude", 0.0)
+//                val category = result.data?.getIntExtra("categoryNum", 0)
+//                val imageString = result.data?.getStringExtra("image")
+//                var nullableStar = result.data?.getIntExtra("star", 0)
+//                var star = nullableStar ?: 0
+//
+//                val id = result.data?.getStringExtra("id") ?: ""
+//
+//                Log.d("kim", "got name : ${name}, got lat :${latitude}, got lon : ${longitude}")
+//                mapView.addPOIItem(createMarker(name, latitude!!, longitude!!, imageString, category, star, id))
+//                lastSetTime = result.data?.getLongExtra("last_set_time", 0)
+                mapView.removeAllPOIItems()
+                loadDB()
             }
             // ShowPlaceActivity에서 돌아온다면
             else if (result.resultCode == 11) {
@@ -283,6 +287,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             Log.d("kim", "${latitude}, ${longitude} transferred to setPlaceActivity")
         }
 
+
         // 경북대학교 마커 생성
         // mapView.addPOIItem(createMarker("경북대학교", 35.8888, 128.6103, null, 0, 0, "testid"))
         // 현위치 모드 설정
@@ -303,6 +308,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         binding.myLocationBtn.setOnClickListener {
             mapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(currentMapPoint.mapPointGeoCoord.latitude,  currentMapPoint.mapPointGeoCoord.longitude), true)
         }
+
 
         // DB 불러오기
         loadDB()
@@ -407,11 +413,30 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             mapView.removeAllPOIItems()
             loadDB()
         }
+        // 주소 검색 이동
+        binding.submitButton.setOnClickListener {
+            val address = binding.searchBar.text.toString()
+            Log.d("location_map", "address: $address")
+            val geocoder = Geocoder(this)
+            val addresses = geocoder.getFromLocationName(address, 1)
+
+            if (!addresses.isNullOrEmpty()) {
+                val latitude = addresses[0].latitude
+                val longitude = addresses[0].longitude
+
+                Log.d("location_map", "location success")
+                Log.d("location_map", "$latitude , $longitude")
+                val mapPoint = MapPoint.mapPointWithGeoCoord(latitude, longitude)
+                mapView.setMapCenterPoint(mapPoint, true)
+            } else {
+                Log.d("location_map", "location fail")
+            }
+        }
     }
 
     // 커스텀 말풍선 - binding으로 코드를 더 깔끔하게 수정할 수 있을 듯함
     // CustomBalloonAdapter 클래스 수정
-    class CustomBalloonAdapter(inflater: LayoutInflater): CalloutBalloonAdapter {
+    class CustomBalloonAdapter(inflater: LayoutInflater, private val activity: AppCompatActivity): CalloutBalloonAdapter {
         val mCalloutBalloon: View = inflater.inflate(R.layout.balloon_layout, null)
         val category: TextView = mCalloutBalloon.findViewById(R.id.ball_category)
         val name: TextView = mCalloutBalloon.findViewById(R.id.ball_tv_name)
@@ -430,11 +455,32 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 else -> "기타"
             }
             name.text = poiItem?.itemName  // 해당 마커의 정보 이용 가능
-            image.setImageBitmap(poiItem?.customImageBitmap)
-            image.apply {
-                baselineAlignBottom = true
-                scaleType = ImageView.ScaleType.CENTER_CROP
+
+            val userObjectData = poiItem?.userObject as? UserObjectData
+            val uniqueId = userObjectData?.id
+
+            val storage = Firebase.storage
+            val storageReference = storage.reference
+
+            Log.d("test2", poiItem?.itemName.toString() + " id: " + uniqueId.toString())
+
+            val storageRef: StorageReference = storageReference.child("images/${uniqueId}.jpg")
+            storageRef.downloadUrl.addOnSuccessListener { uri ->
+                Glide.with(image.context)
+                    .load(uri)
+                    .into(image)
+                Log.d("test2","1111 " + uri.toString())
+            }.addOnFailureListener { exception ->
+                image.apply {
+                    setImageResource(R.drawable.nothing)
+                    baselineAlignBottom = true
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+                    Log.d("test2", "2222 " )
+                }
             }
+
+            address.text = "getCalloutBalloon"
+
             Log.d("window", "getCalloutBalloon run")
             return mCalloutBalloon
         }
@@ -471,9 +517,24 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         val intent = Intent(this@MainActivity, ShowPlaceActivity::class.java)
         //위도와 경도를 찾은 후 문서 정보도 넘김
 
+        // 마커에 대한 정보를 Intent에 추가
+//        intent.putExtra("show_name", poiItem?.itemName)
+//        Log.d("show_name", poiItem?.itemName.toString())
+//        intent.putExtra("show_latitude", poiItem?.mapPoint?.mapPointGeoCoord?.latitude ?: 0.0)
+//        intent.putExtra("show_longitude", poiItem?.mapPoint?.mapPointGeoCoord?.longitude ?: 0.0)
+//        intent.putExtra("show_category", getCategoryType(poiItem?.markerType))
+//
+//        intent.putExtra("show_star", poiItem?.tag)//추가된 것(점수)
+//        val userObjectData = poiItem?.userObject as? UserObjectData
+//        val showId = userObjectData?.id ?: ""
+//
+//        intent.putExtra("show_id", showId)
+        //intent.putExtra("show_id", poiItem?.userObject.toString())//마커 id
+
         val collectionName = "sampleMarker"
         var documentId = ""  // Declare documentId here
         var authorName = "" // 마커 생성자 이름
+
 
         db.collection(collectionName)
             .get()
@@ -620,23 +681,3 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
     }
 
 }
-
-/*        // 앱 해시 키 얻는 코드
-        fun getAppKeyHash() {
-            try {
-                val info =
-                    packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
-                for (signature in info.signatures) {
-                    var md: MessageDigest
-                    md = MessageDigest.getInstance("SHA")
-                    md.update(signature.toByteArray())
-                    val something = String(android.util.Base64.encode(md.digest(), 0))
-                    Log.e("Hash key", something)
-                }
-            } catch (e: Exception) {
-
-                Log.e("name not found", e.toString())
-            }
-        }
-        getAppKeyHash()
-        */

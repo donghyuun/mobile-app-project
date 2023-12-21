@@ -29,7 +29,7 @@
 
         <EditText
             android:id="@+id/search_bar"
-            android:layout_width="match_parent"
+            android:layout_width="270dp"
             android:layout_height="50dp"
             android:layout_marginLeft="25dp"
             android:layout_marginTop="25dp"
@@ -38,9 +38,18 @@
             android:background="@drawable/corner_round"
             android:backgroundTint="@color/gainsboro"
             android:elevation="4dp"
-            android:hint="현재 장소명을 입력하세요"
+            android:hint="장소 | 주소 검색"
             android:paddingStart="10dp"
             android:textColorHint="#727272" />
+
+
+        <Button
+            android:id="@+id/submit_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/search_bar"
+            android:layout_marginTop="25dp"
+            android:text="이동" />
 
         <LinearLayout
             android:layout_width="wrap_content"
