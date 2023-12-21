@@ -32,9 +32,10 @@
 
     <Button
         android:id="@+id/comment_delete_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="70dp"
+        android:layout_height="40dp"
         android:text="삭제"
-        android:backgroundTint="#ff0000"
+        android:textSize="12dp"
+        android:backgroundTint="#ff4646"
         />
 </LinearLayout>
