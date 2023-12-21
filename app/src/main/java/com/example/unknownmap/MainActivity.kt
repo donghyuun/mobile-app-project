@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.location.Geocoder
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
@@ -32,6 +33,7 @@ import androidx.core.content.ContextCompat
 import com.example.unknownmap.databinding.ActivityMainBinding
 import com.example.unknownmap.databinding.BalloonLayoutBinding
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.firestore
@@ -318,10 +320,24 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
             binding.onlyPullUpBarBtn.setBackgroundResource(R.drawable.button_before)
             binding.onlyCigarBtn.setBackgroundResource(R.drawable.button_before)
         }
+        var isStarOn: Boolean = false
+        var placeList: MutableList<String> = mutableListOf()
+
+        // 즐겨찾기를 해제하는 함수
+        fun starOff() {
+            mapView.removeAllPOIItems()
+            for (poiItem in currentPOIItems) {
+                mapView.addPOIItem(poiItem)
+            }
+
+            binding.mainStarBtn.setImageResource(R.drawable.star_page)
+            isStarOn = false
+        }
 
         // 쓰레기통 마커만 보여주는 버튼 리스너
         binding.onlyTrashBinBtn.setOnClickListener {
             buttonColorInit()
+            starOff()
             binding.onlyTrashBinBtn.setBackgroundResource(R.drawable.button_after)
 
             mapView.removeAllPOIItems()
@@ -334,6 +350,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         // 자판기 마커만 보여주는 버튼 리스너
         binding.onlyVendingMachineBtn.setOnClickListener {
             buttonColorInit()
+            starOff()
             binding.onlyVendingMachineBtn.setBackgroundResource(R.drawable.button_after)
 
             mapView.removeAllPOIItems()
@@ -346,6 +363,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         // 붕어빵 마커만 보여주는 버튼 리스너
         binding.onlyFishBtn.setOnClickListener {
             buttonColorInit()
+            starOff()
             binding.onlyFishBtn.setBackgroundResource(R.drawable.button_after)
 
             mapView.removeAllPOIItems()
@@ -358,6 +376,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         // 의류 수거함 마커만 보여주는 버튼 리스너
         binding.onlyClothesDonationBtn.setOnClickListener {
             buttonColorInit()
+            starOff()
             binding.onlyClothesDonationBtn.setBackgroundResource(R.drawable.button_after)
 
             mapView.removeAllPOIItems()
@@ -370,6 +389,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         // 철봉 마커만 보여주는 버튼 리스너
         binding.onlyPullUpBarBtn.setOnClickListener {
             buttonColorInit()
+            starOff()
             binding.onlyPullUpBarBtn.setBackgroundResource(R.drawable.button_after)
 
             mapView.removeAllPOIItems()
@@ -382,6 +402,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         // 흡연장 마커만 보여주는 버튼 리스너
         binding.onlyCigarBtn.setOnClickListener {
             buttonColorInit()
+            starOff()
             binding.onlyCigarBtn.setBackgroundResource(R.drawable.button_after)
 
             mapView.removeAllPOIItems()
@@ -391,9 +412,10 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                     mapView.addPOIItem(poiItem)
             }
         }
-        // 모든 마커 보여주는 버튼 리스너
+        // 모든 마커 보여주는 버튼
         binding.onlyAllBtn.setOnClickListener {
             buttonColorInit()
+            starOff()
             binding.onlyAllBtn.setBackgroundResource(R.drawable.button_after)
 
             val poiItems: Array<MapPOIItem> = mapView.poiItems
@@ -403,10 +425,58 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
                 mapView.addPOIItem(poiItem)
             }
         }
+        // 즐겨찾기만 보여주는 버튼 리스너
+        binding.mainStarBtn.setOnClickListener {
+            if (!isStarOn) {
+                buttonColorInit()
+                binding.onlyAllBtn.setBackgroundResource(R.drawable.button_after)
+                binding.mainStarBtn.setImageResource(R.drawable.star_page_on)
+
+                val poiItems: Array<MapPOIItem> = mapView.poiItems
+                mapView.removeAllPOIItems()
+
+                var usersDB = db.collection("users").document(MainActivity.staticUserId.toString())
+                usersDB.get().addOnSuccessListener() { document: DocumentSnapshot ->
+                    placeList = document.data?.get("places") as MutableList<String>
+                } // placeList : 유저의 즐겨찾기 목록 리스트
+
+                for (poiItem in currentPOIItems) {
+                    for (placeItem in placeList) {
+                        if (poiItem.userObject == placeItem) {
+                            mapView.addPOIItem(poiItem)
+                        }
+                    }
+                }
+
+                isStarOn = true
+            } else {
+                starOff()
+            }
+        }
         // 새로 고침 버튼
         binding.refreshButton.setOnClickListener {
             mapView.removeAllPOIItems()
+            starOff()
             loadDB()
+        }
+        // 주소 검색 이동
+        binding.submitButton.setOnClickListener {
+            val address = binding.searchBar.text.toString()
+            Log.d("location_map", "address: $address")
+            val geocoder = Geocoder(this)
+            val addresses = geocoder.getFromLocationName(address, 1)
+
+            if (!addresses.isNullOrEmpty()) {
+                val latitude = addresses[0].latitude
+                val longitude = addresses[0].longitude
+
+                Log.d("location_map", "location success")
+                Log.d("location_map", "$latitude , $longitude")
+                val mapPoint = MapPoint.mapPointWithGeoCoord(latitude, longitude)
+                mapView.setMapCenterPoint(mapPoint, true)
+            } else {
+                Log.d("location_map", "location fail")
+            }
         }
     }
 
