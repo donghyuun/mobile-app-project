@@ -453,6 +453,7 @@ class MainActivity : AppCompatActivity(), MapView.POIItemEventListener, MapView.
         // 새로 고침 버튼
         binding.refreshButton.setOnClickListener {
             mapView.removeAllPOIItems()
+            starOff()
             loadDB()
         }
     }
